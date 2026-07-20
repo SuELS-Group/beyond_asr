@@ -1,0 +1,39 @@
+__pycache__/
+*.pyc
+*.log
+.env
+.vscode/
+checkpoints/
+outputs*
+data/
+*viz
+
+# Large model files and datasets
+*.safetensors
+*.json
+*.dylib
+*.so
+*.dll
+
+# Environment and dependencies
+lora_ood_env/
+*_env/
+venv/
+env/
+.venv/
+*.lock
+
+# Archive folders
+ARCHIVE/
+OLD-CODE/
+
+# Large files that exceed GitHub limits
+*.dylib
+**/adapter_model.safetensors
+
+# Testing notebooks
+*.ipynb
+
+# data
+datasets
+.DS_Store
