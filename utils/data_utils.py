@@ -69,3 +69,15 @@ def format_prompts(examples: Dict[str, Any], tokenizer, max_length: int=512) -> 
         texts.append(qa_input)
     
     return {"qa_inputs": texts}
+
+def store_logs(outputs, file_name):
+        base_path = "outputs/base"
+        file_path = os.path.join(base_path, file_name)
+        if not os.path.exists(base_path):
+            os.makedirs(base_path)
+        if not os.path.isfile(file_path):
+            os.open(file_path, os.O_WRONLY | os.O_CREAT)
+        
+        with open(file_path, "a") as log_file:
+            json.dump(outputs, log_file, indent=4)
+            log_file.write("\n")

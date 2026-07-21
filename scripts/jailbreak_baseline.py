@@ -166,7 +166,6 @@ def compute_asr(
                 asr_total_score += score[0]["score"]
             else:
                 status = "no jailbreak"
-                
             outputs.append({
                         "status": status,
                         "result": score[0]["score"],
