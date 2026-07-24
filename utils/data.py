@@ -2,13 +2,6 @@ import json
 import os
 from typing import Any, Dict
 
-import pandas as pd
-import torch
-from tqdm import tqdm
-from transformers import AutoModelForCausalLM, AutoTokenizer
-
-from datasets import Dataset, load_dataset, load_from_disk
-
 SYSTEM_PROMPT = """You are a medical expert with advanced knowledge in clinical reasoning, diagnostics, and treatment planning. 
 Please provide short, to-the-point answer to the following medical question."""
 
@@ -71,7 +64,7 @@ def format_prompts(examples: Dict[str, Any], tokenizer, max_length: int=512) -> 
     return {"qa_inputs": texts}
 
 def store_logs(outputs, file_name):
-        base_path = "outputs/base"
+        base_path = "outputs"
         file_path = os.path.join(base_path, file_name)
         if not os.path.exists(base_path):
             os.makedirs(base_path)
@@ -81,3 +74,4 @@ def store_logs(outputs, file_name):
         with open(file_path, "a") as log_file:
             json.dump(outputs, log_file, indent=4)
             log_file.write("\n")
+            

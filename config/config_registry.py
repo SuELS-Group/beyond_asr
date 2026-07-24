@@ -17,30 +17,6 @@ ID_DATASETS = {
     "standard": "keivalya/MedQuad-MedicalQnADataset",
 }
 
-ATTN_ONLY = ["q_proj", "k_proj", "v_proj", "o_proj"]
-
-MLP_ONLY = ["gate_proj", "up_proj", "down_proj"]
-
-TARGET_MODULES = {
-    "qwen": ATTN_ONLY + MLP_ONLY,
-    "llama": ATTN_ONLY + MLP_ONLY 
-}
-
-ALLOWED_R = [2, 4, 8, 16, 32]
-
-# =============================================================================
-# 2. HELPER FUNCTIONS
-# =============================================================================
-
-def get_target_modules(model_name: str) -> list:
-    """Get target module by model family"""
-    if model_name.startswith("qwen"):
-        return TARGET_MODULES["qwen"]
-    if model_name.startswith("llama"):
-        return TARGET_MODULES["llama"]
-    raise ValueError(f"Unknow model or family not supported : {model_name}")
-
-
 # =============================================================================
 # 3. VALIDATE CONFIG
 # =============================================================================
@@ -48,7 +24,7 @@ def get_target_modules(model_name: str) -> list:
 def validate_config(config: dict) -> bool:
     """Strict validation of config dict"""
     
-    required_keys = ["model_name", "dataset_name", "trainer_name", "r", "lora_alpha"]
+    required_keys = ["model_name", "dataset_name", "trainer_name"]
     for key in required_keys:
         if key not in config:
             raise ValueError(f"❌ Missing parameter : {key}")
@@ -59,9 +35,6 @@ def validate_config(config: dict) -> bool:
     if config["dataset_name"] not in ID_DATASETS:
         raise ValueError(f"❌ dataset_name invalid. Choices : {list(ID_DATASETS.keys())}")
 
-    if config["r"] not in ALLOWED_R:
-        print(f"⚠️ Attention: r={config['r']} isn't in standard values {ALLOWED_R}")
-
     return True
 
 
@@ -71,13 +44,8 @@ def validate_config(config: dict) -> bool:
 
 def build_config(
     model_name: str, 
-    r: int, 
-    lora_alpha: int, 
-    lora_dropout: float = 0.05,
     dataset_name: str = "standard", 
-    trainer_name: str = "lora", 
     batch_size: int = 16,
-    lr: float = 5e-6,
     epochs: int = 15,
     max_length: int = 512,
     seed: int = 2026,
@@ -89,39 +57,22 @@ def build_config(
     raw_params = {
         "model_name": model_name,
         "dataset_name": dataset_name,
-        "trainer_name": trainer_name,
-        "r": r,
-        "lora_alpha": r*2,
     }
     
     validate_config(raw_params)
 
     config = {
         "seed": seed,
-        "trainer_name": trainer_name,
         "model_name_or_path": MODELS[model_name],
         "dataset_name": ID_DATASETS[dataset_name],
         "max_length": max_length,
     }
 
-    folder_name = f"outputs/saved_models/{model_name}_{dataset_name}_{trainer_name}_r{r}_alpha{lora_alpha}"
+    folder_name = f"outputs/saved_models/{model_name}_{dataset_name}"
 
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     
     config["output_dir"] = f"{folder_name}_{timestamp}"
-
-    config.update({"lora":{
-        "r": r,
-        "lora_alpha": lora_alpha,
-        "lora_dropout": lora_dropout,
-        "target_modules": get_target_modules(model_name)
-    }})
-    
-    config.update({"train_arguments": {
-        "num_train_epochs": epochs,
-        "batch_size": batch_size,
-        "learning_rate": lr
-    }})
 
     return config
 
