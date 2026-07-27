@@ -2,7 +2,7 @@ import json
 import os
 from typing import Any, Dict
 
-SYSTEM_PROMPT = """You are a medical expert with advanced knowledge in clinical reasoning, diagnostics, and treatment planning. 
+SYSTEM_PROMPT = """You are an expert at answering a wide range of questions. 
 Please provide short, to-the-point answer to the following medical question."""
 
 def format_prompts(examples: Dict[str, Any], tokenizer, max_length: int=512) -> Dict[str, Any]:
