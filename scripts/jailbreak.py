@@ -32,8 +32,7 @@ def compute_asr_step(
     file_name: str,
     max_samples: int,
     step_count_func: str,
-    verbose: bool = False,
-    judge: bool = False
+    verbose: bool = False
 ) -> dict:
     """
     Compute query-aware stepwise Attack Success Rate (ASR_STEP) on jailbreak dataset.
@@ -54,7 +53,8 @@ def compute_asr_step(
         num_samples = min(max_samples, num_samples)
     
     config = GCGConfig(use_prefix_cache=False,
-                       num_steps=N_ITER)   
+                       num_steps=N_ITER,
+                       verbosity="ERROR",)   
 
     print(f"\nEvaluating on {num_samples} samples...")
     outputs = []
@@ -139,14 +139,9 @@ def main():
         help="Path to jailbreak dataset"
     )
     parser.add_argument(
-                "--judge",
-                action="store_true",
-                help="To use LLM Judge for eval, default is False"
-            )
-    parser.add_argument(
         "--max_samples",
         type=int,
-        default=None,
+        default=1,
         help="Max samples to evaluate (default: all)"
     )
     parser.add_argument(
@@ -193,7 +188,6 @@ def main():
         file_name="jailbreak_asr_step.json",
         max_samples=args.max_samples,
         step_count_func=func,
-        judge=args.judge,
         verbose=args.verbose
     )
     

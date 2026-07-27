@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import sys
 from pathlib import Path
 
@@ -30,7 +29,6 @@ def compute_asr(
     dataset,
     file_name: str,
     max_samples: int,
-    judge: bool = False,
     verbose: bool = False, 
 ) -> dict:
     """
@@ -51,7 +49,8 @@ def compute_asr(
         num_samples = min(max_samples, num_samples)
     
     config = GCGConfig(use_prefix_cache=False,
-                       num_steps=N_ITER)   
+                       num_steps=N_ITER,
+                       verbosity="ERROR",)   
 
     print(f"\nEvaluating on {num_samples} samples...")
     outputs = []
@@ -131,11 +130,6 @@ def main():
         help="Path to jailbreak dataset"
     )
     parser.add_argument(
-            "--judge",
-            action="store_true",
-            help="To use LLM Judge for eval, default is False"
-        )
-    parser.add_argument(
         "--max_samples",
         type=int,
         default=5,
@@ -174,7 +168,6 @@ def main():
         small_jailbreak,
         file_name="jailbreak_asr_baseline.json",
         max_samples=args.max_samples,
-        judge=args.judge,
         verbose=args.verbose
     )
     
