@@ -39,14 +39,12 @@ def judge_response(judge, judge_tokenizer, question, response, device):
 
     # Rescale the score given by the LLM on the same scale as the human score
     score = extract_judge_score(response)
-    print(f"Extracted judge score:{score}")
     return (score-1)/3  # Rescale to [0, 1] range
 
 def extract_judge_score(answer: str, split_str: str = "Total rating:") -> float:
     """ Extract the numeric score from the judge's response."""
     # Split from the end so we read the final rating section if the token appears multiple times.
     tail = answer.rsplit(split_str, 1)[-1] if split_str in answer else answer
-    print(tail)
     digit_groups = [el.strip() for el in re.findall(r"\d+(?:\.\d+)?", tail)]
 
     if not digit_groups:

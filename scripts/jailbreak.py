@@ -145,7 +145,7 @@ def main():
     parser.add_argument(
         "--max_samples",
         type=int,
-        default=5,
+        default=None,
         help="Max samples to evaluate (default: all)"
     )
     parser.add_argument(

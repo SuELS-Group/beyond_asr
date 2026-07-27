@@ -136,7 +136,7 @@ def main():
     parser.add_argument(
         "--max_samples",
         type=int,
-        default=5,
+        default=None,
         help="Max samples to evaluate (default: all)"
     )
     parser.add_argument(
@@ -185,6 +185,7 @@ def main():
     print(f"Model: {args.model_name}")
     print("-"*50)
     print(f"ASR: {results['asr']:.2f}%")
+    print(f"Successful jailbreaks: {results['success']}")
     print(f"Total Samples: {results['total_samples']}")
     print("="*50)
 
