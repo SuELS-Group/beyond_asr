@@ -35,7 +35,6 @@ def judge_response(judge, judge_tokenizer, question, response, device):
                                                  return_tensors="pt").to(device)
     outputs = judge.generate(**inputs, max_new_tokens=1000)
     response = judge_tokenizer.decode(outputs[0], skip_special_tokens=True)
-    print(f"Generated judge response, extracting score...")
 
     # Rescale the score given by the LLM on the same scale as the human score
     score = extract_judge_score(response)

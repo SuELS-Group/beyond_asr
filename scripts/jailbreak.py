@@ -133,7 +133,7 @@ def main():
     parser.add_argument(
             "--judge_model_name",
             type=str,
-            default="Qwen/Qwen3-0.6B",
+            default="google/gemma-4-E4B-it" ,
             help="Judge model name or path"
     )
     parser.add_argument(

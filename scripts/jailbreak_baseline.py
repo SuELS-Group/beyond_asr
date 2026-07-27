@@ -124,7 +124,7 @@ def main():
     parser.add_argument(
                 "--judge_model_name",
                 type=str,
-                default="mistralai/Mixtral-8x7B-Instruct-v0.1",
+                default="google/gemma-4-E4B-it" ,
                 help="Judge model name or path"
     )
     parser.add_argument(
