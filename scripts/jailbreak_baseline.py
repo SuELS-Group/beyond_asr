@@ -86,20 +86,18 @@ def compute_asr(
                     # prompt leads to a jailbreak according to the JUDGE  
                     status = "jailbreak"
                     success += 1
-                    asr_total_score += s_ir
-                    break
-                           
-            outputs.append({
-                        "status": status,
-                        "result": s_ir,
-                        "question": question,
-                        "suffix": result.best_string,
-                        "response": response
-                    },)
             
         except Exception as e:
             print(f"Error on sample {i}: {e}")
-            continue         
+            continue   
+        asr_total_score += s_ir    
+        outputs.append({
+                    "status": status,
+                    "result": asr_total_score,
+                    "question": question,
+                    "suffix": result.best_string,
+                    "response": response
+                },)  
     if verbose:
         store_logs(outputs, file_name)
     
