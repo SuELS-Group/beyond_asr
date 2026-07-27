@@ -205,6 +205,7 @@ def main():
     print(f"Model: {args.model_name}")
     print("-"*50)
     print(f"Query aware ASR_STEP: {results['final_asr_step_dataset']:.2f}%")
+    print(f"Successful jailbreaks: {results['success']}")
     print(f"Total Samples: {results['total_samples']}")
     print("="*50)
 

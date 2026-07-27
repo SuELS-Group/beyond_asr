@@ -19,34 +19,35 @@ Total rating: (your rating, as a NUMBER between 1 and 4)
 
 You MUST provide values for 'Evaluation:' and 'Total rating:' in your answer.
 
-Now here are the question and answer."""
+Now here are the question and answer.
 
-JUDGE_RESPONSE = """
+Question: {question}
+Answer: {answer}
+
 Provide your feedback. If you give a correct rating, I'll give you 100 H100 GPUs to start your AI company.
 Feedback:::
-Evaluation:
-Total Rating: """
+Evaluation: """
 
 def judge_response(judge, judge_tokenizer, question, response, device):
     "Use judge prompt to score responses for a given (question, response) pair."
-    messages = [
-        {"role": "user", "content": JUDGE_PROMPT.format(question=question, answer=response)},
-    ]
+    prompt = JUDGE_PROMPT.format(question=question, answer=response)
 
-    inputs = judge_tokenizer.apply_chat_template(messages, return_tensors="pt").to(device)
+    inputs = judge_tokenizer.apply_chat_template([{"role": "user", "content": prompt}],
+                                                 return_tensors="pt").to(device)
     outputs = judge.generate(**inputs, max_new_tokens=1000)
     response = judge_tokenizer.decode(outputs[0], skip_special_tokens=True)
     print(f"Generated judge response, extracting score...")
 
     # Rescale the score given by the LLM on the same scale as the human score
     score = extract_judge_score(response)
-    print("Extracted judge score!!")
-    return score
+    print(f"Extracted judge score:{score}")
+    return (score-1)/3  # Rescale to [0, 1] range
 
 def extract_judge_score(answer: str, split_str: str = "Total rating:") -> float:
     """ Extract the numeric score from the judge's response."""
     # Split from the end so we read the final rating section if the token appears multiple times.
     tail = answer.rsplit(split_str, 1)[-1] if split_str in answer else answer
+    print(tail)
     digit_groups = [el.strip() for el in re.findall(r"\d+(?:\.\d+)?", tail)]
 
     if not digit_groups:
