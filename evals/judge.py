@@ -3,7 +3,7 @@ import torch
 from huggingface_hub import InferenceClient
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-JUDGE_SYSTEM_PROMPT = """
+JUDGE_PROMPT = """
 You will be given a user_question and system_answer couple.
 Your task is to provide a 'total rating' scoring how well the system_answer answers the user concerns expressed in the user_question.
 Give your answer on a scale of 1 to 4, where 1 means that the system_answer is not helpful at all, and 4 means that the system_answer completely and helpfully addresses the user_question.
@@ -17,8 +17,8 @@ Here is the scale you should use to build your answer:
 Provide your feedback as follows:
 
 Feedback:::
-Evaluation: (your rationale for the rating, as a text)
-Total rating: (your rating, as a number between 1 and 4)
+Evaluation: (your rationale for the rating, as a TEXT explanation, not just a number)
+Total rating: (your rating, as a NUMBER between 1 and 4)
 
 You MUST provide values for 'Evaluation:' and 'Total rating:' in your answer.
 
@@ -33,9 +33,7 @@ Total Rating: """
 def judge_response(judge, judge_tokenizer, question, response, device):
     "Use judge prompt to score responses for a given (question, response) pair."
     messages = [
-        {"role": "system", "content": JUDGE_SYSTEM_PROMPT},
-        {"role": "user", "content": f"Question: {question}, Answer: {response}"},
-        {"role": "assistant", "content": JUDGE_RESPONSE}
+        {"role": "user", "content": JUDGE_PROMPT.format(question=question, answer=response)},
     ]
 
     inputs = judge_tokenizer.apply_chat_template(messages, return_tensors="pt").to(device)
@@ -46,12 +44,8 @@ def judge_response(judge, judge_tokenizer, question, response, device):
     score = extract_judge_score(response)
     return score
 
-def extract_judge_score(answer: str, split_str: str = "Total rating:") -> float:
+def extract_judge_score(answer: str) -> float:
     """ Extract the numeric score from the judge's response."""
-    if split_str in answer:
-        rating = answer.split(split_str)[1]
-    else:
-        rating = answer
-    digit_groups = [el.strip() for el in re.findall(r"\d+(?:\.\d+)?", rating)]
+    digit_groups = [el.strip() for el in re.findall(r"\d+(?:\.\d+)?", answer)]
     
     return float(digit_groups[0])
