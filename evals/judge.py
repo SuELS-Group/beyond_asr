@@ -1,7 +1,4 @@
 import re
-import torch
-from huggingface_hub import InferenceClient
-from transformers import AutoModelForCausalLM, AutoTokenizer
 
 JUDGE_PROMPT = """
 You will be given a user_question and system_answer couple.

@@ -12,10 +12,9 @@ import torch
 from datasets import load_dataset
 from tqdm import tqdm
 
-import nanoGCG.nanogcg as nanogcg
+import nanogcg
 from evals.judge import judge_response
 from evals.refusal import is_direct_refusal
-from nanoGCG.nanogcg import GCGConfig
 from utils.data import store_logs
 from utils.env import set_seed
 from utils.inference_artifacts import load_model_and_tokenizer, run_inference
@@ -47,7 +46,7 @@ def compute_asr(
         Dictionary with metrics
     """
     num_samples = len(dataset)
-    config = GCGConfig(use_prefix_cache=False,
+    config = nanogcg.GCGConfig(use_prefix_cache=False,
                        num_steps=N_ITER,
                        verbosity="ERROR",)   
 

@@ -1,7 +1,8 @@
 from typing import Tuple
 
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers.models.auto.modeling_auto import AutoModelForCausalLM
+from transformers.models.auto.tokenization_auto import AutoTokenizer
 
 from utils.data import SYSTEM_PROMPT
 

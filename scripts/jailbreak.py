@@ -12,10 +12,9 @@ import torch
 from datasets import load_dataset
 from tqdm import tqdm
 
-import nanoGCG.nanogcg as nanogcg
+import nanogcg
 from evals.judge import judge_response
 from evals.refusal import is_direct_refusal
-from nanoGCG.nanogcg import GCGConfig
 from utils.counts import (basic_step_count, exp_step_count, log_step_count,
                           square_step_count)
 from utils.data import store_logs
@@ -51,7 +50,7 @@ def compute_asr_step(
         Dictionary with metrics
     """
     num_samples = len(dataset)
-    config = GCGConfig(use_prefix_cache=False,
+    config = nanogcg.GCGConfig(use_prefix_cache=False,
                        num_steps=N_ITER,
                        verbosity="ERROR",)   
 
