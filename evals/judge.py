@@ -30,22 +30,18 @@ Feedback:::
 Evaluation:
 Total Rating: """
 
-def judge_response(question, response, judge_id = "mistralai/Mixtral-8x7B-Instruct-v0.1"):
+def judge_response(judge, judge_tokenizer, question, response, device):
     "Use judge prompt to score responses for a given (question, response) pair."
-    
-    tokenizer = AutoTokenizer.from_pretrained(judge_id)
-    model = AutoModelForCausalLM.from_pretrained(judge_id, device_map="auto")
-
     messages = [
         {"role": "system", "content": JUDGE_SYSTEM_PROMPT},
         {"role": "user", "content": f"Question: {question}, Answer: {response}"},
         {"role": "assistant", "content": JUDGE_RESPONSE}
     ]
 
-    inputs = tokenizer.apply_chat_template(messages, return_tensors="pt") #.to("cuda")
+    inputs = judge_tokenizer.apply_chat_template(messages, return_tensors="pt").to(device)
 
-    outputs = model.generate(inputs, max_new_tokens=1000)
-    response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    outputs = judge.generate(inputs, max_new_tokens=1000)
+    response = judge_tokenizer.decode(outputs[0], skip_special_tokens=True)
 
     # Rescale the score given by the LLM on the same scale as the human score
     score = extract_judge_score(response)
