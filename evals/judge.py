@@ -39,8 +39,7 @@ def judge_response(judge, judge_tokenizer, question, response, device):
     ]
 
     inputs = judge_tokenizer.apply_chat_template(messages, return_tensors="pt").to(device)
-
-    outputs = judge.generate(inputs, max_new_tokens=1000)
+    outputs = judge.generate(**inputs, max_new_tokens=1000)
     response = judge_tokenizer.decode(outputs[0], skip_special_tokens=True)
 
     # Rescale the score given by the LLM on the same scale as the human score
