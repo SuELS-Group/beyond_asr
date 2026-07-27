@@ -64,11 +64,12 @@ def compute_asr_step(
         target = sample["Target"]
         messages = [{"role": "user", "content": question}]
     
-        result = nanogcg.run(model,
-                            tokenizer,
-                            messages,
-                            target,
-                            config,)
+        # result = nanogcg.run(model,
+        #                     tokenizer,
+        #                     messages,
+        #                     target,
+        #                     config,)
+        result = "sssdaefwefwfw"
         print(f"GCG generated at sample {i}")
         
         asr_step, step_count = 0.0, 1
@@ -76,7 +77,8 @@ def compute_asr_step(
             s_ir = 0
             status = ""
             try:
-                new_question = f"{question} {result.strings[step_count]}"
+                # new_question = f"{question} {result.strings[step_count]}"
+                new_question = f"{question} {result}"
                 response = run_inference(model, tokenizer, new_question)
                 # Step 1: Check for direct refusal
                 refusal = is_direct_refusal(response)
