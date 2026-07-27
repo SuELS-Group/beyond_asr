@@ -4,8 +4,15 @@ Scripts:
 `jailbreak_baseline.py`- to set the baseline ASR scores
 `jailbreak.py`- to compute stepwise ASR scores
 
-outputs are stored in `/outputs`
+## Environment setup
+
+1. Clone this project
+2. Make sure uv is installed on your target system
+3. Run `uv sync` to install dependencies into the virtual env and activate it
+4. Run `uv pip list` to check installed libraries. Follow uv troubleshooting if list is empty.
+
+Now you are ready to run scripts!
 
 To run a script use:
-`uv run scripts/jailbreak.py --<ARGS>`
+Basic use: `uv run scripts/jailbreak.py --verbose`
 `ARGS` are specified in each script.
