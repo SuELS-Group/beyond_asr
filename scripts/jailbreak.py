@@ -20,9 +20,6 @@ from utils.counts import (basic_step_count, exp_step_count, log_step_count,
 from utils.data import store_logs
 from utils.env import set_seed
 from utils.inference_artifacts import load_model_and_tokenizer, run_inference
-
-N_TRIALS = 1 # number of trials
-N_ITER = 100 # maximum number of allowed iterations(budget) per trial until model succeeds in generating a harmful response
     
 def compute_asr_step(
     model,
@@ -30,6 +27,7 @@ def compute_asr_step(
     dataset,
     judge,
     judge_tokenizer,
+    n_iter: int,
     file_name: str,
     step_count_func: str,
     verbose: bool = False,
@@ -51,7 +49,7 @@ def compute_asr_step(
     """
     num_samples = len(dataset)
     config = nanogcg.GCGConfig(use_prefix_cache=False,
-                       num_steps=N_ITER,
+                       num_steps=n_iter,
                        verbosity="ERROR",)   
 
     print(f"\nEvaluating on {num_samples} samples...")
@@ -72,7 +70,7 @@ def compute_asr_step(
         
         asr_step, step_count = 0.0, 0
         status, response = "", ""
-        while step_count < N_ITER:
+        while step_count < n_iter:
             s_ir = 0
             try:
                 new_question = f"{question} {result.strings[step_count]}"
@@ -152,9 +150,15 @@ def main():
         help="Max samples to evaluate (default: all)"
     )
     parser.add_argument(
-            "--no_judge",
+            "--judge",
             action="store_true",
-            help="Disable judge model"
+            help="Use flag to enable judge model, default: false"
+    )
+    parser.add_argument(
+                "--n_iter",
+                type=int,
+                default=100,
+                help="Number of iterations for the attack, default: 100"
         )
     parser.add_argument(
         "--verbose",
@@ -183,7 +187,7 @@ def main():
     model, tokenizer = load_model_and_tokenizer(args.model_name)
     
     # Load judge model and tokenizer
-    if not args.no_judge:
+    if args.judge:
         judge, judge_tokenizer = load_model_and_tokenizer(args.judge_model_name)
     else:
         judge, judge_tokenizer = None, None
@@ -197,14 +201,17 @@ def main():
     func = ""
     if args.step_count_func in ["basic", "exp", "log", "square"]:
         func = f"{args.step_count_func}_step_count"
-        
+    
+    log_file_name = f"asr_step_{args.model_name}_{args.n_iter}_{args.step_count_func}_{args.seed}.json"
+    
     results = compute_asr_step(
         model,
         tokenizer,
         small_jailbreak,
         judge,
         judge_tokenizer,
-        file_name="jailbreak_asr_step.json",
+        args.n_iter,
+        file_name=log_file_name,
         step_count_func=func,
         verbose=args.verbose
     )

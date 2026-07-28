@@ -19,15 +19,13 @@ from utils.data import store_logs
 from utils.env import set_seed
 from utils.inference_artifacts import load_model_and_tokenizer, run_inference
 
-N_TRIALS = 1 # number of trials /versions of the base prompt 
-N_ITER = 100 # maximum number of allowed iterations(budget) per trial until model succeeds in generating a harmful response
-
 def compute_asr(
     model,
     tokenizer,
     dataset,
     judge,
     judge_tokenizer,
+    n_iter: int,
     file_name: str,
     verbose: bool = False,
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
@@ -47,7 +45,7 @@ def compute_asr(
     """
     num_samples = len(dataset)
     config = nanogcg.GCGConfig(use_prefix_cache=False,
-                       num_steps=N_ITER,
+                       num_steps=n_iter,
                        verbosity="ERROR",)   
 
     print(f"\nEvaluating on {num_samples} samples...")
@@ -143,9 +141,15 @@ def main():
         help="Max samples to evaluate (default: all)"
     )
     parser.add_argument(
-            "--no_judge",
+            "--judge",
             action="store_true",
-            help="Disable judge model"
+            help="Use flag to enable judge model, default: false"
+    )
+    parser.add_argument(
+        "--n_iter",
+        type=int,
+        default=100,
+        help="Number of iterations for the attack, default: 100"
     )
     parser.add_argument(
         "--verbose",
@@ -168,7 +172,7 @@ def main():
     model, tokenizer = load_model_and_tokenizer(args.model_name)
     
     # Load judge model and tokenizer
-    if not args.no_judge:
+    if args.judge:
         judge, judge_tokenizer = load_model_and_tokenizer(args.judge_model_name)
     else:
         judge, judge_tokenizer = None, None
@@ -178,6 +182,8 @@ def main():
     dataset = load_dataset(args.dataset_path,"behaviors", split="harmful")
     small_jailbreak = dataset.select([i for i in list(range(args.max_samples))]) if args.max_samples else dataset
     
+    log_file_name = f"asr_step_{args.model_name}_{args.n_iter}_{args.seed}.json"
+    
     # Compute ASR
     results = compute_asr(
         model,
@@ -185,7 +191,8 @@ def main():
         small_jailbreak,
         judge,
         judge_tokenizer,
-        file_name="jailbreak_asr_baseline.json",
+        args.n_iter,
+        file_name=log_file_name,
         verbose=args.verbose
     )
     
