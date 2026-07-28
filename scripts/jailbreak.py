@@ -201,8 +201,8 @@ def main():
     func = ""
     if args.step_count_func in ["basic", "exp", "log", "square"]:
         func = f"{args.step_count_func}_step_count"
-    
-    log_file_name = f"asr_step_{args.model_name}_{args.n_iter}_{args.step_count_func}_{args.seed}.json"
+    model_name = args.model_name.split("/")[1].replace("-", "").lower()
+    log_file_name = f"asr_step_{model_name}_{args.n_iter}_{args.step_count_func}_{args.seed}.json"
     
     results = compute_asr_step(
         model,

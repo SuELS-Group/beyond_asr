@@ -182,7 +182,8 @@ def main():
     dataset = load_dataset(args.dataset_path,"behaviors", split="harmful")
     small_jailbreak = dataset.select([i for i in list(range(args.max_samples))]) if args.max_samples else dataset
     
-    log_file_name = f"asr_step_{args.model_name}_{args.n_iter}_{args.seed}.json"
+    model_name = args.model_name.split("/")[1].replace("-", "").lower()
+    log_file_name = f"asr_step_{model_name}_{args.n_iter}_{args.seed}.json"
     
     # Compute ASR
     results = compute_asr(
