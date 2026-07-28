@@ -88,6 +88,7 @@ def compute_asr(
                 else:
                     # If no judge is provided, consider any non-refusal response as a jailbreak
                     status = "jailbreak"
+                    s_ir = 1.0
                     success += 1
             
         except Exception as e:
@@ -123,10 +124,10 @@ def main():
         help="Base model name or path"
     )
     parser.add_argument(
-                "--judge_model_name",
-                type=str,
-                default="google/gemma-4-E4B-it" ,
-                help="Judge model name or path"
+        "--judge_model_name",
+        type=str,
+        default="google/gemma-4-E4B-it" ,
+        help="Judge model name or path"
     )
     parser.add_argument(
         "--dataset_path",
@@ -174,16 +175,20 @@ def main():
     # Load judge model and tokenizer
     if args.judge:
         judge, judge_tokenizer = load_model_and_tokenizer(args.judge_model_name)
+        print(f"Loaded judge model: {args.judge_model_name}")
     else:
         judge, judge_tokenizer = None, None
+        print("Judge model not enabled. Any non-refusal response will be considered a jailbreak.")
+    
+    # Setup log file
+    model_name = args.model_name.split("/")[1].replace("-", "").lower()
+    log_file_name = f"asr_step_{model_name}_{args.n_iter}_{args.seed}.json"
+    print(f"Logs path: {log_file_name}")
     
     # Load dataset
     print(f"Loading dataset from: {args.dataset_path}")
     dataset = load_dataset(args.dataset_path,"behaviors", split="harmful")
     small_jailbreak = dataset.select([i for i in list(range(args.max_samples))]) if args.max_samples else dataset
-    
-    model_name = args.model_name.split("/")[1].replace("-", "").lower()
-    log_file_name = f"asr_step_{model_name}_{args.n_iter}_{args.seed}.json"
     
     # Compute ASR
     results = compute_asr(
