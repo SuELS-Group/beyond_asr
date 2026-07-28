@@ -172,18 +172,20 @@ def main():
     print(f"Loading model: {args.model_name}")
     model, tokenizer = load_model_and_tokenizer(args.model_name)
     
+    # Setup log file
+    model_name = args.model_name.split("/")[1].replace("-", "").lower()
+    
     # Load judge model and tokenizer
     if args.judge:
         judge, judge_tokenizer = load_model_and_tokenizer(args.judge_model_name)
         print(f"Loaded judge model: {args.judge_model_name}")
+        log_file_name = f"asr_base_{model_name}_judge_{args.n_iter}_{args.seed}.json"
+        print(f"Logs path: {log_file_name}")
     else:
         judge, judge_tokenizer = None, None
         print("Judge model not enabled. Any non-refusal response will be considered a jailbreak.")
-    
-    # Setup log file
-    model_name = args.model_name.split("/")[1].replace("-", "").lower()
-    log_file_name = f"asr_base_{model_name}_{args.n_iter}_{args.seed}.json"
-    print(f"Logs path: {log_file_name}")
+        log_file_name = f"asr_base_{model_name}_nojudge_{args.n_iter}_{args.seed}.json"
+        print(f"Logs path: {log_file_name}")
     
     # Load dataset
     print(f"Loading dataset from: {args.dataset_path}")
