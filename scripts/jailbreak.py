@@ -200,6 +200,7 @@ def main():
         log_file_name += f"_judge_{args.n_iter}_{args.seed}.json"
     else:
         judge, judge_tokenizer = None, None
+        log_file_name += f"_{args.n_iter}_{args.seed}.json"
         print("\nJudge model not enabled. Any non-refusal response will be considered a jailbreak.")
     print(f"Logs path: {log_file_name}")
     
