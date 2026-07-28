@@ -182,7 +182,7 @@ def main():
     
     # Setup log file
     model_name = args.model_name.split("/")[1].replace("-", "").lower()
-    log_file_name = f"asr_step_{model_name}_{args.n_iter}_{args.seed}.json"
+    log_file_name = f"asr_base_{model_name}_{args.n_iter}_{args.seed}.json"
     print(f"Logs path: {log_file_name}")
     
     # Load dataset

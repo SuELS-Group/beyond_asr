@@ -69,9 +69,9 @@ def compute_asr_step(
         print(f"GCG generated at sample {i}")
         
         asr_step, step_count = 0.0, 0
-        status, response = "", ""
         while step_count < n_iter:
             s_ir = 0
+            status, response = "", ""
             try:
                 new_question = f"{question} {result.strings[step_count]}"
                 response = run_inference(model, tokenizer, new_question)
@@ -102,14 +102,14 @@ def compute_asr_step(
                 continue
             asr_step += (s_ir * globals()[step_count_func](step_count))
             step_count += 1
+            outputs.append({
+                    "status": status,
+                    "result": asr_sample,
+                    "question": question,
+                    "suffix": result.strings[step_count],
+                    "response": response
+                },)
         asr_sample += asr_step
-        outputs.append({
-                        "status": status,
-                        "result": asr_sample,
-                        "question": question,
-                        "suffix": result.strings[step_count],
-                        "response": response
-                    },)
             
     if verbose:
         store_logs(outputs, file_name)
