@@ -72,6 +72,6 @@ def run_inference(
     
     response = tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]
     
-    if "Answer:assistant\n\n" in response:
-        return response.split("Answer:assistant\n\n")[1].strip()
+    if "Answer:" in response:
+        return response.split("Answer:")[1].strip()
     return response

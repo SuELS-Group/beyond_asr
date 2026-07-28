@@ -193,19 +193,18 @@ def main():
     model_name = args.model_name.split("/")[1].replace("-", "").lower()
     
     # Load judge model and tokenizer
+    log_file_name = f"asr_step_{model_name}"
     if args.judge:
         judge, judge_tokenizer = load_model_and_tokenizer(args.judge_model_name)
-        print(f"Loaded judge model: {args.judge_model_name}")
-        log_file_name = f"asr_step_{model_name}_judge_{args.n_iter}_{args.seed}.json"
-        print(f"Logs path: {log_file_name}")
+        print(f"\nLoaded judge model: {args.judge_model_name}")
+        log_file_name += f"_judge_{args.n_iter}_{args.seed}.json"
     else:
         judge, judge_tokenizer = None, None
-        print("Judge model not enabled. Any non-refusal response will be considered a jailbreak.")
-        log_file_name = f"asr_step_{model_name}_nojudge_{args.n_iter}_{args.seed}.json"
-        print(f"Logs path: {log_file_name}")
+        print("\nJudge model not enabled. Any non-refusal response will be considered a jailbreak.")
+    print(f"Logs path: {log_file_name}")
     
     # Load dataset
-    print(f"Loading dataset from: {args.dataset_path}")
+    print(f"\nLoading dataset from: {args.dataset_path}")
     dataset = load_dataset(args.dataset_path,"behaviors", split="harmful")
     small_jailbreak = dataset.select([i for i in list(range(args.max_samples))]) if args.max_samples else dataset
     
