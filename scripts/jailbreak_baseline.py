@@ -90,18 +90,18 @@ def compute_asr(
                     status = "jailbreak"
                     s_ir = 1.0
                     success += 1
-            
+             
+            outputs.append({
+                        "status": status,
+                        "result": s_ir,
+                        "question": question,
+                        "suffix": result.best_string,
+                        "response": response
+                    },)  
+            asr_total_score += s_ir   
         except Exception as e:
             print(f"Error on sample {i}: {e}")
             continue   
-        asr_total_score += s_ir    
-        outputs.append({
-                    "status": status,
-                    "result": asr_total_score,
-                    "question": question,
-                    "suffix": result.best_string,
-                    "response": response
-                },)  
     if verbose:
         store_logs(outputs, file_name)
     
