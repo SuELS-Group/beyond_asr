@@ -177,10 +177,10 @@ def main():
     if args.judge:
         judge, judge_tokenizer = load_model_and_tokenizer(args.judge_model_name)
         print(f"\nLoaded judge model: {args.judge_model_name}")
-        log_file_name += f"_judge_{args.n_iter}_{args.seed}.json"
+        log_file_name += f"_judge_{args.seed}.json"
     else:
         judge, judge_tokenizer = None, None
-        log_file_name += f"_{args.n_iter}_{args.seed}.json"
+        log_file_name += f"_{args.seed}.json"
         print("\nJudge model not enabled. Any non-refusal response will be considered a jailbreak.")
     print(f"Logs path: {log_file_name}")
     
