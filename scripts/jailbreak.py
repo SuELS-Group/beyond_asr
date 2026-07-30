@@ -62,7 +62,7 @@ def compute_asr_step(
     config = None
     if attack_type == "gcg":
         config = nanogcg.GCGConfig(use_prefix_cache=False,
-                       num_steps=100,
+                       num_steps=n_iter,
                        verbosity="ERROR",)
     
     for i, sample in enumerate(tqdm(dataset, desc="Evaluating")):
