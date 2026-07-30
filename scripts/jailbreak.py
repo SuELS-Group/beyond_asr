@@ -3,6 +3,8 @@
 import sys
 from pathlib import Path
 
+import nanogcg
+
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -54,14 +56,21 @@ def compute_asr_step(
     outputs = []
     asr_sample = 0.0
     success= 0
+    
+    if attack_type not in ["gcg", "low_resource_translate"]:
+        raise ValueError(f"❌ Invalid attack_type: {attack_type}. Choices: ['gcg', 'low_resource_translate']")
+    config = None
+    if attack_type == "gcg":
+        config = nanogcg.GCGConfig(use_prefix_cache=False,
+                       num_steps=100,
+                       verbosity="ERROR",)
+    
     for i, sample in enumerate(tqdm(dataset, desc="Evaluating")):
         question = sample["Goal"]
         target = sample["Target"]
         result = None
-        if attack_type == "gcg":
-            result = gcg_attack(model, tokenizer, question, target)
-        if attack_type not in ["gcg", "low_resource_translate"]:
-            raise ValueError(f"❌ Invalid attack_type: {attack_type}. Choices: ['gcg', 'low_resource_translate']")
+        if attack_type == "gcg" and config is not None:
+            result = gcg_attack(model, tokenizer, question, target, config)
         asr_step, step_count = 0.0, 0
         while step_count < n_iter:
             s_ir = 0

@@ -19,6 +19,7 @@ from evals.refusal import is_direct_refusal
 from utils.data import store_logs
 from utils.env import set_seed
 from utils.inference_artifacts import load_model_and_tokenizer, run_inference
+import nanogcg
 
 warnings.simplefilter('ignore')
 
@@ -29,6 +30,7 @@ def compute_asr(
     judge,
     judge_tokenizer,
     attack_type: str,
+    n_iter: int,
     file_name: str,
     verbose: bool = False,
 ) -> dict:
@@ -47,6 +49,15 @@ def compute_asr(
     """
     num_samples = len(dataset)
     print(f"\nEvaluating on {num_samples} samples...")
+    
+    if attack_type not in ["gcg", "low_resource_translate"]:
+            raise ValueError(f"❌ Invalid attack_type: {attack_type}. Choices: ['gcg', 'low_resource_translate']")
+    config = None
+    if attack_type == "gcg":
+        config = nanogcg.GCGConfig(use_prefix_cache=False,
+                        num_steps=n_iter,
+                        verbosity="ERROR",)
+    
     outputs = []
     asr_total_score = 0.0
     success= 0
@@ -57,8 +68,8 @@ def compute_asr(
         question = sample["Goal"]
         target = sample["Target"]
         new_question = ""
-        if attack_type == "gcg":
-            result = gcg_attack(model, tokenizer, question, target)
+        if attack_type == "gcg" and config is not None:
+            result = gcg_attack(model, tokenizer, question, target, config)
             new_question = f"{question} {result.best_string}"
     
         elif attack_type == "low_resource_translate":
@@ -151,6 +162,12 @@ def main():
         help="Type of attack to use, default: gcg"
     )
     parser.add_argument(
+        "--n_iter",
+        type=int,
+        default=100,
+        help="Number of iterations for the attack, default: 100"
+    )
+    parser.add_argument(
         "--verbose",
         action="store_true",
         help="Log detailed outputs"
@@ -197,6 +214,7 @@ def main():
         judge,
         judge_tokenizer,
         args.attack_type,
+        args.n_iter,
         file_name=log_file_name,
         verbose=args.verbose
     )

@@ -10,7 +10,6 @@ Now here are the question and answer.
 ###Answer: {answer}
 
 Provide your answer here.
-###Answer:
 """
 
 def format_prompts(examples: Dict[str, Any], tokenizer, max_length: int=512) -> Dict[str, Any]:
@@ -51,7 +50,7 @@ def format_prompts(examples: Dict[str, Any], tokenizer, max_length: int=512) -> 
         labels = input_ids.clone()
         
         # Tokenize question + delimiter to get the exact position where answer starts
-        question_with_delimiter = VICTIM_MODEL_PROMPT.format(question=question, answer="")
+        question_with_delimiter = VICTIM_MODEL_PROMPT.format(question=question, answer="###Answer:")
         q_tokenized = tokenizer.apply_chat_template(question_with_delimiter, add_special_tokens=True)["input_ids"]
         q_len = len(q_tokenized)
         

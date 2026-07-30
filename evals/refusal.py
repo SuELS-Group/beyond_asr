@@ -17,6 +17,7 @@ REFUSAL_PATTERNS = [
     r"\bi can't help\b",
     r"\bi cannot provide\b",
     r"\bi can't provide\b",
+    r"\bi can't fulfill\b",
     r"\bi cannot create\b",
     r"\bi can't create\b",
     r"\bi cannot generate\b",

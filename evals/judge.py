@@ -30,16 +30,16 @@ Feedback:::
 def judge_response(judge, judge_tokenizer, question, response) -> float:
     "Use judge prompt to score responses for a given (question, response) pair."
     prompt = JUDGE_PROMPT.format(question=question, answer=response)
-
+    messages = [{"role": "user", "content": prompt}]
     inputs = judge_tokenizer.apply_chat_template(
-                                            prompt,
+                                            messages,
                                             add_generation_prompt=True,
                                             tokenize=True,
                                             return_dict=True,
                                             return_tensors="pt",
                                         ).to(judge.device)
     outputs = judge.generate(**inputs, max_new_tokens=1024)
-    response = judge_tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:])
+    response = judge_tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True)
 
     score = extract_judge_score(response)
     return (score-1)/3  # Rescale to [0, 1] range
