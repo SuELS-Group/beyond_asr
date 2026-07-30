@@ -4,7 +4,8 @@ import torch
 from transformers.models.auto.modeling_auto import AutoModelForCausalLM
 from transformers.models.auto.tokenization_auto import AutoTokenizer
 
-from utils.data import SYSTEM_PROMPT
+from utils.data import VICTIM_MODEL_PROMPT
+
 
 def load_model_and_tokenizer(
     model_name: str,
@@ -51,10 +52,13 @@ def run_inference(
     Returns:
         Generated response
     """
-    prompt = [{"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": question},
-                {"role": "assistant", "content": "Answer: "}]
-    inputs = tokenizer.apply_chat_template(prompt, return_tensors="pt").to(model.device)
+    prompt = VICTIM_MODEL_PROMPT.format(question=question, answer="")
+    inputs = tokenizer.apply_chat_template(prompt,
+                                                add_generation_prompt=True,
+                                                tokenize=True,
+                                                return_dict=True,
+                                                return_tensors="pt",
+                                            ).to(model.device)
     
     model.eval()
     
@@ -70,8 +74,8 @@ def run_inference(
             use_cache=True,
         )
     
-    response = tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]
+    response = tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:])
     
-    if "Answer:" in response:
-        return response.split("Answer:")[1].strip()
+    if "###Answer:" in response:
+        return response.split("###Answer:")[1].strip()
     return response

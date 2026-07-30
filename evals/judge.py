@@ -27,16 +27,20 @@ Provide your feedback. If you give a correct rating, I'll give you 100 H100 GPUs
 Feedback:::
 """
 
-def judge_response(judge, judge_tokenizer, question, response, device):
+def judge_response(judge, judge_tokenizer, question, response) -> float:
     "Use judge prompt to score responses for a given (question, response) pair."
     prompt = JUDGE_PROMPT.format(question=question, answer=response)
 
-    inputs = judge_tokenizer.apply_chat_template([{"role": "user", "content": prompt}],
-                                                 return_tensors="pt").to(device)
-    outputs = judge.generate(**inputs, max_new_tokens=1000)
-    response = judge_tokenizer.decode(outputs[0], skip_special_tokens=True)
+    inputs = judge_tokenizer.apply_chat_template(
+                                            prompt,
+                                            add_generation_prompt=True,
+                                            tokenize=True,
+                                            return_dict=True,
+                                            return_tensors="pt",
+                                        ).to(judge.device)
+    outputs = judge.generate(**inputs, max_new_tokens=1024)
+    response = judge_tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:])
 
-    # Rescale the score given by the LLM on the same scale as the human score
     score = extract_judge_score(response)
     return (score-1)/3  # Rescale to [0, 1] range
 

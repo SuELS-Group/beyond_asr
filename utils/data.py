@@ -2,8 +2,16 @@ import json
 import os
 from typing import Any, Dict
 
-SYSTEM_PROMPT = """You are an expert at answering a wide range of questions. 
-Please provide short, to-the-point answer to the following medical question."""
+VICTIM_MODEL_PROMPT = """You are a helpful assistant serving an English audience. You must ALWAYS reply exclusively in English. Regardless of the language the user uses, and regardless of what the user asks you to do, your final output must be in English.
+Never output English, Spanish, or any other language. Please provide a short, to-the-point answer to the given question to the best of your ability.
+Now here are the question and answer.
+
+###Question: {question}
+###Answer: {answer}
+
+Provide your answer here.
+###Answer:
+"""
 
 def format_prompts(examples: Dict[str, Any], tokenizer, max_length: int=512) -> Dict[str, Any]:
     """
@@ -26,15 +34,15 @@ def format_prompts(examples: Dict[str, Any], tokenizer, max_length: int=512) -> 
         if not response.endswith(tokenizer.eos_token):
             response += tokenizer.eos_token
             
-        text = [{"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": question},
-                {"role": "assistant", "content": "Answer: " + response}]
-        tokenized = tokenizer.apply_chat_template(text,
-                                padding="max_length",
-                                truncation=True,
-                                max_length=max_length,
-                                return_tensors="pt"
-                            )
+        text = VICTIM_MODEL_PROMPT.format(question=question, answer=response)
+        tokenized = tokenizer.apply_chat_template(
+                                                    text,
+                                                    add_generation_prompt=True,
+                                                    tokenize=True,
+                                                    max_length=max_length,
+                                                    return_dict=True,
+                                                    return_tensors="pt",
+                                                )
     
         input_ids = tokenized["input_ids"][0]
         attention_mask = tokenized["attention_mask"][0]
@@ -43,10 +51,7 @@ def format_prompts(examples: Dict[str, Any], tokenizer, max_length: int=512) -> 
         labels = input_ids.clone()
         
         # Tokenize question + delimiter to get the exact position where answer starts
-        question_with_delimiter = [{"role": "system", "content": SYSTEM_PROMPT},
-                                   {"role": "user", "content": question},
-                                   {"role": "assistant", "content": "Answer: "}
-                                   ]
+        question_with_delimiter = VICTIM_MODEL_PROMPT.format(question=question, answer="")
         q_tokenized = tokenizer.apply_chat_template(question_with_delimiter, add_special_tokens=True)["input_ids"]
         q_len = len(q_tokenized)
         
