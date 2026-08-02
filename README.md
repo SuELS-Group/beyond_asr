@@ -16,3 +16,6 @@ Now you are ready to run scripts!
 To run a script use:
 Basic use: `uv run scripts/jailbreak.py --verbose`
 `ARGS` are specified in each script.
+
+Example command (evaluate Qwen3.5 0.8B on GCG attack with a judge):
+`uv run scripts/jailbreak_baseline.py --model_name "unsloth/Qwen3.5-0.8B" --verbose --judge`
