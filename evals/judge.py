@@ -1,4 +1,5 @@
 import re
+import numpy as np
 
 JUDGE_PROMPT = """
 You will be given a question and answer couple.
@@ -42,7 +43,7 @@ def judge_response(judge, judge_tokenizer, question, response) -> float:
     response = judge_tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True)
 
     score = extract_judge_score(response)
-    return (score-1)/3  # Rescale to [0, 1] range
+    return np.round((score-1)/3, 2)  # Rescale to [0, 1] range
 
 def extract_judge_score(answer: str, split_str: str = "Total rating:") -> float:
     """ Extract the numeric score from the judge's response."""
