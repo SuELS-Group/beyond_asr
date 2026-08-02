@@ -190,7 +190,7 @@ def main():
     model_name = args.model_name.split("/")[1].replace("-", "").lower()
     
     # Load judge model and tokenizer
-    log_file_name = f"asr_base_{model_name}"
+    log_file_name = f"asr_base_{model_name}_{args.attack_type}"
     if args.judge:
         judge, judge_tokenizer = load_model_and_tokenizer(args.judge_model_name)
         print(f"\nLoaded judge model: {args.judge_model_name}")
