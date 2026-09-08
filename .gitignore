@@ -37,3 +37,4 @@ OLD-CODE/
 # data
 datasets
 .DS_Store
+*.json*

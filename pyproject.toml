@@ -8,6 +8,7 @@ dependencies = [
     "accelerate>=1.14.0",
     "datasets>=5.0.0",
     "deep-translator>=1.11.4",
+    "deepeval>=4.1.8",
     "nanogcg>=0.2.3",
     "numpy>=2.5.1",
     "torch>=2.13.0",

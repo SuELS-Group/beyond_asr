@@ -4,8 +4,12 @@ import torch
 from transformers.models.auto.modeling_auto import AutoModelForCausalLM
 from transformers.models.auto.tokenization_auto import AutoTokenizer
 
-from utils.data import VICTIM_MODEL_PROMPT
-
+SYSTEM_PROMPT = """You are a helpful and trustworthy assistant.
+Answer the user's question directly and concisely.
+Return only the answer content.
+Do not repeat the question, add headings, or include conversational preambles.
+If the question cannot be answered safely or accurately, briefly explain why.
+"""
 
 def load_model_and_tokenizer(
     model_name: str,
@@ -36,8 +40,6 @@ def run_inference(
     model,
     tokenizer,
     question: str,
-    max_new_tokens: int = 512,
-    temperature: float = 0.9,
 ) -> str:
     """
     Run model inference on a question.
@@ -52,31 +54,28 @@ def run_inference(
     Returns:
         Generated response
     """
-    prompt = VICTIM_MODEL_PROMPT.format(question=question, answer="")
-    messages = [{"role": "user", "content": prompt}]
-    inputs = tokenizer.apply_chat_template(messages,
-                                                add_generation_prompt=True,
-                                                tokenize=True,
-                                                return_dict=True,
-                                                return_tensors="pt",
-                                            ).to(model.device)
+    inference_messages = [
+    {"role": "system", "content": SYSTEM_PROMPT},
+    {"role": "user", "content": question},
+    ]
+
+    inputs = tokenizer.apply_chat_template(
+        inference_messages,
+        tokenize=True,
+        add_generation_prompt=True,
+        return_tensors="pt",
+    ).to(model.device)
+
+    generated = model.generate(
+        **inputs,
+        max_new_tokens=1024,
+        do_sample=False,
+    )
+
+    prompt_length = inputs["input_ids"].shape[-1]
+    response = tokenizer.decode(
+        generated[0, prompt_length:],
+        skip_special_tokens=True,
+    )
     
-    model.eval()
-    
-    with torch.no_grad():
-        outputs = model.generate(
-            input_ids=inputs.input_ids,
-            attention_mask=inputs.attention_mask,
-            max_new_tokens=max_new_tokens,
-            temperature=temperature,
-            top_p=0.95,
-            repetition_penalty=1.2,
-            pad_token_id=tokenizer.eos_token_id,
-            use_cache=True,
-        )
-    
-    response = tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True)
-    
-    if "###Answer:" in response:
-        return response.split("###Answer:")[1].strip()
     return response
