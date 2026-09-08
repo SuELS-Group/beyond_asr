@@ -81,12 +81,6 @@ def main():
         help="Base model name or path"
     )
     parser.add_argument(
-        "--use_judge",
-        type=bool,
-        default=False,
-        help="Whether to use judge model for evaluation"
-    )
-    parser.add_argument(
         "--prompts_file_name",
         type=str,
         default="nanogcg_prompts.jsonl",
@@ -94,8 +88,7 @@ def main():
     )
     parser.add_argument(
         "--use_judge",
-        type=bool,
-        default=False,
+        action="store_true",
         help="Whether to use judge model for evaluation"
     )
     parser.add_argument(

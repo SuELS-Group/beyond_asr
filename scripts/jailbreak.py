@@ -109,8 +109,7 @@ def main():
     )
     parser.add_argument(
         "--use_judge",
-        type=bool,
-        default=True,
+        action="store_true",
         help="Whether to use judge model for evaluation"
     )
     parser.add_argument(
