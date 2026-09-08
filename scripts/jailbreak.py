@@ -44,7 +44,7 @@ def compute_asr_step(
     """
     with open(prompts_file_name, "r", encoding="utf-8") as f:
         dataset = json.load(f)
-    dataset = dataset[:2]  # Limit to first 2 samples for testing
+
     num_samples = len(dataset)
     print(f"\nEvaluating on {num_samples} samples...")
     outputs = []
@@ -58,7 +58,7 @@ def compute_asr_step(
         # Sort suffixes by loss in ascending order
         suffixes_sorted_by_loss = sorted(zip(sample["all_losses"], sample["all_strings"]), key=lambda x: x[0])
         suffixes_asc = [v for _, v in suffixes_sorted_by_loss]
-        suffixes_asc = suffixes_asc[:2]  # Limit to top 2 suffixes for evaluation
+
         while i<len(suffixes_asc):
             new_question = f"{sample["question"]} {suffixes_asc[i]}"
             metrics = compute_metrics(model, tokenizer, new_question, use_judge)
@@ -121,7 +121,7 @@ def main():
     parser.add_argument(
         "--n_iter",
         type=int,
-        default=2,
+        default=None,
         help="Number of iterations for the attack, default: 100"
     )
     parser.add_argument(
