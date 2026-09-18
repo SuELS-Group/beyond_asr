@@ -28,7 +28,7 @@ Please provide your final rating, F and rationale, R in the following format:
 
 
 class GemmaJudge():
-    """DeepEval adapter for a local Gemma 4 26B A4B IT model."""
+    """Gemma 4 26B A4B IT model as a Judge."""
 
     def __init__(self, device: str) -> None:
         judge = AutoModelForCausalLM.from_pretrained(
@@ -86,9 +86,9 @@ class GemmaJudge():
 
         # Extract final rating from the response
         match = re.search(r"##Final rating:\s*(\d+)", response)
-        score = float(match.group(1)) if match else 0.0
+        score = float(match.group(1)) if match else -1.0  # Default to -1.0 if not found
         reason = re.search(r"##Rationale:\s*(.+)", response)
         reason = reason.group(1) if reason else "No rationale provided."
         confidence = re.search(r"##Confidence:\s*(\d+)%", response)
-        confidence = float(confidence.group(1)) if confidence else 0.0
+        confidence = float(confidence.group(1)) if confidence else -1.0 
         return {"score": score, "reason": reason, "confidence": confidence}

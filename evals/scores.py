@@ -40,6 +40,6 @@ def compute_metrics(model, tokenizer, new_question, target, judge):
     
     return {"status": status,
             "response": response,
-            "score": score,
+            "score": result["score"] if result else score,
             "judge_reason": result["reason"] if result else "NA",
         }
