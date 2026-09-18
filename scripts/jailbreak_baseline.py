@@ -5,12 +5,14 @@ import json
 import sys
 import warnings
 from pathlib import Path
+from typing import Any
 
 from tqdm import tqdm
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from evals.judge import GemmaJudge
 from evals.scores import compute_metrics
 from utils.env import set_seed, store_logs
 from utils.inference_artifacts import load_model_and_tokenizer
@@ -20,9 +22,9 @@ warnings.simplefilter('ignore')
 def compute_asr(
     model,
     tokenizer,
-    use_judge: bool,
     prompts_file_name: str,
     log_file_name: str,
+    judge: Any = None,
     verbose: bool = False,
 ) -> dict:
     """
@@ -31,7 +33,7 @@ def compute_asr(
     Args:
         model: Model to evaluate
         tokenizer: Tokenizer
-        use_judge: Whether to use judge model for evaluation
+        judge: Judge model
         file_name: Name of the log file
         verbose: Print details for each sample
     
@@ -48,17 +50,18 @@ def compute_asr(
     asr_total_score = 0.0
     success= 0
     for _, sample in enumerate(tqdm(dataset, desc="Evaluating")):
-        new_question = f"{sample["question"]} {sample["best_string"]}"
+        new_question = f"{sample["question"]}{sample["best_string"]}"
         
-        metrics = compute_metrics(model, tokenizer, new_question, use_judge)
+        metrics = compute_metrics(model, tokenizer, new_question, sample["target"], judge)
         outputs.append({
                     "jailbreak_status": metrics["status"],
-                    "jailbreak_score": metrics["s_ir"],
+                    "jailbreak_score": metrics["score"],
                     "jailbreak_question": new_question,
+                    "jailbreak_reason": metrics["judge_reason"],
                     "jailbreak_response": metrics["response"]
                 },)
         # Compute total ASR for successful jailbreaks only
-        asr_total_score += metrics["s_ir"] if metrics["status"] == "jailbreak" else 0.0
+        asr_total_score += metrics["score"] if metrics["status"] == "jailbreak" else 0.0
     if verbose:
         store_logs(outputs, log_file_name)
     
@@ -88,7 +91,7 @@ def main():
     )
     parser.add_argument(
         "--use_judge",
-        action="store_true",
+        action="store_false",
         help="Whether to use judge model for evaluation"
     )
     parser.add_argument(
@@ -96,12 +99,6 @@ def main():
         type=str,
         default="gcg",
         help="Type of attack to use, default: gcg"
-    )
-    parser.add_argument(
-        "--n_iter",
-        type=int,
-        default=100,
-        help="Number of iterations for the attack, default: 100"
     )
     parser.add_argument(
         "--verbose",
@@ -124,19 +121,21 @@ def main():
     
     # Setup log file
     model_name = args.model_name.split("/")[1].replace("-", "").lower()
+    judge = None
     if args.use_judge:
-        log_file_name = f"asr_base_{model_name}_{args.attack_type}_judge_{args.n_iter}_{args.seed}.json"
+        judge = GemmaJudge(device=model.device)
+        log_file_name = f"asr_base_{model_name}_{args.attack_type}_judge_{args.seed}.json"
     else:
-        log_file_name = f"asr_base_{model_name}_{args.attack_type}_nojudge_{args.n_iter}_{args.seed}.json"
+        log_file_name = f"asr_base_{model_name}_{args.attack_type}_nojudge_{args.seed}.json"
     print(f"\nLogs path: {log_file_name}")
     
     # Compute ASR
     results = compute_asr(
         model,
         tokenizer,
-        args.use_judge,
         args.prompts_file_name,
         log_file_name,
+        judge,
         verbose=args.verbose
     )
     

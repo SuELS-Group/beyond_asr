@@ -1,27 +1,26 @@
 """
-Simple script that runs GCG with the default settings from:
+GCG with the default settings. Code from:
 https://github.com/GraySwanAI/nanoGCG/blob/main/examples/simple.py
 """
-import json
 import argparse
 import sys
 from pathlib import Path
 
 # Add project root to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tqdm import tqdm
 import torch
+from datasets import load_dataset
+from gcg import GCGConfig, ProbeSamplingConfig, run
+from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-import nanogcg
-from nanogcg import GCGConfig, ProbeSamplingConfig
-from datasets import load_dataset
-from utils.env import set_seed
+from utils.env import set_seed, store_logs
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", type=str,
+    parser.add_argument("--model_name", type=str,
                         default="meta-llama/Llama-3.2-1B-Instruct")
     parser.add_argument("--dataset_path",
                         type=str,
@@ -51,23 +50,22 @@ def main():
     args = parse_args()
     set_seed(args.seed)
 
-    model = AutoModelForCausalLM.from_pretrained(args.model, torch_dtype=getattr(torch, args.dtype)).to(args.device)
+    model = AutoModelForCausalLM.from_pretrained(args.model, dtype=getattr(torch, args.dtype)).to(args.device)
     tokenizer = AutoTokenizer.from_pretrained(args.model)
     print(f"\nLoaded {args.model} on {args.device} ")
 
     probe_sampling_config = None
-    config = GCGConfig(verbosity="WARNING")
     if args.probe_sampling:
-        draft_model = AutoModelForCausalLM.from_pretrained("openai-community/gpt2", torch_dtype=getattr(torch, args.dtype)).to(args.device)
+        draft_model = AutoModelForCausalLM.from_pretrained("openai-community/gpt2", dtype=getattr(torch, args.dtype)).to(args.device)
         draft_tokenizer = AutoTokenizer.from_pretrained("openai-community/gpt2")
         probe_sampling_config = ProbeSamplingConfig(
             draft_model=draft_model,
             draft_tokenizer=draft_tokenizer,
         )
         
-        config = GCGConfig(
-                    verbosity="WARNING",
-                    probe_sampling_config=probe_sampling_config,)
+    config = GCGConfig(
+                verbosity="WARNING",
+                probe_sampling_config=probe_sampling_config,)
     print("\nSet GCG Config.")
 
     # Load dataset
@@ -82,7 +80,7 @@ def main():
     
         messages = [{"role": "user", "content": question}]
 
-        result = nanogcg.run(
+        result = run(
             model,
             tokenizer,
             messages,
@@ -101,9 +99,8 @@ def main():
                     "with_probe_sampling": args.probe_sampling,
         })
 
-    with open("nanogcg_prompts.jsonl", "a") as log_file:
-        json.dump(result_list, log_file)
-        log_file.write("\n")
+    model_name = args.model_name.split("/")[1].replace("-", "").lower()
+    store_logs(result_list, f"{model_name}_gcg_results_{args.seed}.json")
     print("Finished GCG generation!!")
 
 if __name__ == "__main__":

@@ -3,6 +3,7 @@
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -12,6 +13,7 @@ import warnings
 
 from tqdm import tqdm
 
+from evals.judge import GemmaJudge
 from evals.scores import compute_metrics
 from utils.counts import exp, log
 from utils.env import set_seed, store_logs
@@ -22,10 +24,10 @@ warnings.simplefilter('ignore')
 def compute_asr_step(
     model,
     tokenizer,
-    use_judge: bool,
     prompts_file_name: str,
     log_file_name: str,
     step_count_func: str,
+    judge: Any = None,
     verbose: bool = False,
 ) -> dict:
     """
@@ -34,8 +36,9 @@ def compute_asr_step(
     Args:
         model: Model to evaluate
         tokenizer: Tokenizer
-        dataset: Dataset with 'Question' and optional 'Answer' fields
-        max_samples: Max number of samples to evaluate (None = all)
+        judge: Judge model
+        prompts_file_name: Path to jailbreak prompts
+        log_file_name: Path to store logs
         step_count_func: Function to calculate step count
         verbose: Print details for each sample
     
@@ -60,8 +63,8 @@ def compute_asr_step(
         suffixes_asc = [v for _, v in suffixes_sorted_by_loss]
 
         while i<len(suffixes_asc):
-            new_question = f"{sample["question"]} {suffixes_asc[i]}"
-            metrics = compute_metrics(model, tokenizer, new_question, use_judge)
+            new_question = f"{sample["question"]}{suffixes_asc[i]}"
+            metrics = compute_metrics(model, tokenizer, new_question, sample["target"], judge)
             outputs.append({
                         "jailbreak_status": metrics["status"],
                         "jailbreak_index": i if metrics["status"] == "jailbreak" else -1,
@@ -117,12 +120,6 @@ def main():
         type=str,
         default="gcg",
         help="Type of attack to use, default: gcg"
-    )   
-    parser.add_argument(
-        "--n_iter",
-        type=int,
-        default=None,
-        help="Number of iterations for the attack, default: 100"
     )
     parser.add_argument(
         "--verbose",
@@ -151,20 +148,22 @@ def main():
     
     # Setup log file
     model_name = args.model_name.split("/")[1].replace("-", "").lower()
+    judge = None
     if args.use_judge:
-        log_file_name = f"asr_step_{model_name}_{args.attack_type}_judge_{args.n_iter}_{args.seed}.json"
+        judge = GemmaJudge(device=model.device)
+        log_file_name = f"asr_step_{model_name}_{args.attack_type}_judge_{args.seed}.json"
     else:
-        log_file_name = f"asr_step_{model_name}_{args.attack_type}_nojudge_{args.n_iter}_{args.seed}.json"
+        log_file_name = f"asr_step_{model_name}_{args.attack_type}_nojudge_{args.seed}.json"
     print(f"\nLogs path: {log_file_name}")
     
     # Compute ASR
     results = compute_asr_step(
         model,
         tokenizer,
-        args.use_judge,
         args.prompts_file_name,
         log_file_name,
         args.step_count_func,
+        judge,
         args.verbose
     )
     
