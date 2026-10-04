@@ -9,13 +9,12 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-import torch
 from datasets import load_dataset
 from gcg import GCGConfig, ProbeSamplingConfig, run
 from tqdm import tqdm
-from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from utils.env import set_seed, store_logs
+from utils.inference_artifacts import load_model_and_tokenizer
 
 
 def parse_args() -> argparse.Namespace:
@@ -50,14 +49,12 @@ def main():
     args = parse_args()
     set_seed(args.seed)
 
-    model = AutoModelForCausalLM.from_pretrained(args.model_name, dtype=getattr(torch, args.dtype)).to(args.device)
-    tokenizer = AutoTokenizer.from_pretrained(args.model_name)
-    print(f"\nLoaded {args.model_name} on {args.device} ")
+    model, tokenizer = load_model_and_tokenizer(args.model_name)
+    print(f"tokenizer.chat_template: {tokenizer.chat_template}")
 
     probe_sampling_config = None
     if args.probe_sampling:
-        draft_model = AutoModelForCausalLM.from_pretrained("openai-community/gpt2", dtype=getattr(torch, args.dtype)).to(args.device)
-        draft_tokenizer = AutoTokenizer.from_pretrained("openai-community/gpt2")
+        draft_model, draft_tokenizer = load_model_and_tokenizer("openai-community/gpt2")
         probe_sampling_config = ProbeSamplingConfig(
             draft_model=draft_model,
             draft_tokenizer=draft_tokenizer,

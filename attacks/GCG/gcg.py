@@ -57,7 +57,7 @@ class GCGConfig:
     use_mellowmax: bool = False
     mellowmax_alpha: float = 1.0
     early_stop: bool = False
-    use_prefix_cache: bool = True
+    use_prefix_cache: bool = False
     allow_non_ascii: bool = False
     filter_ids: bool = True
     add_space_before_target: bool = False
