@@ -57,7 +57,6 @@ def compute_asr_step(
         i=0
         success = 0
         score_per_sample = 0.0
-        
         # Sort suffixes by loss in ascending order
         suffixes_sorted_by_loss = sorted(zip(sample["all_losses"], sample["all_strings"]), key=lambda x: x[0])
         suffixes_asc = [v for _, v in suffixes_sorted_by_loss]
@@ -101,7 +100,7 @@ def main():
     parser.add_argument(
         "--model_name",
         type=str,
-        default="meta-llama/Llama-3.2-1B-Instruct",
+        default="meta-llama/Llama-3.1-8B-Instruct",
         help="Base model name or path"
     )
     parser.add_argument(
@@ -112,7 +111,7 @@ def main():
     )
     parser.add_argument(
         "--use_judge",
-        action="store_true",
+        action="store_false",
         help="Whether to use judge model for evaluation"
     )
     parser.add_argument(

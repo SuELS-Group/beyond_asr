@@ -50,9 +50,9 @@ def main():
     args = parse_args()
     set_seed(args.seed)
 
-    model = AutoModelForCausalLM.from_pretrained(args.model, dtype=getattr(torch, args.dtype)).to(args.device)
-    tokenizer = AutoTokenizer.from_pretrained(args.model)
-    print(f"\nLoaded {args.model} on {args.device} ")
+    model = AutoModelForCausalLM.from_pretrained(args.model_name, dtype=getattr(torch, args.dtype)).to(args.device)
+    tokenizer = AutoTokenizer.from_pretrained(args.model_name)
+    print(f"\nLoaded {args.model_name} on {args.device} ")
 
     probe_sampling_config = None
     if args.probe_sampling:

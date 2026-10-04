@@ -4,11 +4,10 @@ import torch
 from transformers.models.auto.modeling_auto import AutoModelForCausalLM
 from transformers.models.auto.tokenization_auto import AutoTokenizer
 
-SYSTEM_PROMPT = """You are a helpful and trustworthy assistant.
+DEFAULT_SYSTEM_PROMPT = """You are a helpful and trustworthy assistant.
 Answer the user's question directly and concisely.
 Return only the answer content.
 Do not repeat the question, add headings, or include conversational preambles.
-If the question cannot be answered safely or accurately, briefly explain why.
 """
 
 def load_model_and_tokenizer(
@@ -42,6 +41,7 @@ def run_inference(
     model,
     tokenizer,
     question: str,
+    SYSTEM_PROMPT: str = DEFAULT_SYSTEM_PROMPT,
 ) -> str:
     """
     Run model inference on a question.
@@ -50,6 +50,7 @@ def run_inference(
         model: Pretrained model
         tokenizer: Tokenizer
         question: Input question/prompt
+        SYSTEM_PROMPT: System prompt to use, if any
         max_new_tokens: Max tokens to generate
         temperature: Sampling temperature
     

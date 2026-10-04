@@ -62,6 +62,7 @@ def compute_asr(
                 },)
         # Compute total ASR for successful jailbreaks only
         asr_total_score += metrics["score"] if metrics["status"] == "jailbreak" else 0.0
+        success += 1 if metrics["status"] == "jailbreak" else 0
     if verbose:
         store_logs(outputs, log_file_name)
     
