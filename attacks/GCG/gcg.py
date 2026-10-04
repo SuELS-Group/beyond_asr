@@ -47,11 +47,11 @@ class ProbeSamplingConfig:
 
 @dataclass
 class GCGConfig:
-    num_steps: int = 500
-    optim_str_init: Union[str, List[str]] = "! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !"
-    search_width: int = 64
+    num_steps: int = 250
+    optim_str_init: Union[str, List[str]] = "x x x x x x x x x x x x x x x x x x x x"
+    search_width: int = 512
     batch_size: int = None
-    topk: int = 64
+    topk: int = 256
     n_replace: int = 1
     buffer_size: int = 0
     use_mellowmax: bool = False
