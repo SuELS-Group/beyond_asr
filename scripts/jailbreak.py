@@ -13,7 +13,6 @@ import warnings
 
 from tqdm import tqdm
 
-from evals.judge import GemmaJudge
 from evals.scores import compute_metrics
 from utils.counts import exp, log
 from utils.env import set_seed, store_logs
@@ -27,7 +26,6 @@ def compute_asr_step(
     prompts_file_name: str,
     log_file_name: str,
     step_count_func: str,
-    judge: Any = None,
     verbose: bool = False,
 ) -> dict:
     """
@@ -36,7 +34,6 @@ def compute_asr_step(
     Args:
         model: Model to evaluate
         tokenizer: Tokenizer
-        judge: Judge model
         prompts_file_name: Path to jailbreak prompts
         log_file_name: Path to store logs
         step_count_func: Function to calculate step count
@@ -51,7 +48,7 @@ def compute_asr_step(
     num_samples = len(dataset)
     print(f"\nEvaluating on {num_samples} samples...")
     outputs = []
-    successful_total= 0
+    total_successful= 0
     score_total = 0.0
     for _, sample in enumerate(tqdm(dataset, desc="Evaluating")):
         i=0
@@ -63,14 +60,16 @@ def compute_asr_step(
 
         while i<len(suffixes_asc):
             new_question = f"{sample["question"]}{suffixes_asc[i]}"
-            metrics = compute_metrics(model, tokenizer, new_question, sample["target"], judge)
+            metrics = compute_metrics(model, tokenizer, new_question, sample["target"])
             outputs.append({
                         "jailbreak_status": metrics["status"],
                         "jailbreak_index": i if metrics["status"] == "jailbreak" else -1,
+                         "min_loss_index": sample["min_loss_index"],
                         "jailbreak_score": metrics["score"],
                         "jailbreak_question": new_question,
                         "jailbreak_response": metrics["response"],
                         "judge_reason": metrics["judge_reason"],
+                        "judge_confidence": metrics["confidence"],
                     },)
 
             if metrics["status"] == "jailbreak":
@@ -79,14 +78,13 @@ def compute_asr_step(
                 score_per_sample += (metrics["score"] * globals()[step_count_func](i/len(suffixes_asc)))
                 break
             i += 1
-        successful_total += success
+        total_successful += success
         score_total += score_per_sample
-        
-    if verbose:
-        store_logs(outputs, log_file_name)
+    store_logs(outputs, log_file_name)
+    
     results = {
         "final_asr_step_dataset": (score_total / num_samples) * 100,
-        "success": successful_total,
+        "success": total_successful,
         "total_samples": num_samples,
     }
     
@@ -108,11 +106,6 @@ def main():
         type=str,
         default="nanogcg_prompts.jsonl",
         help="Path to jailbreak prompts"
-    )
-    parser.add_argument(
-        "--use_judge",
-        action="store_false",
-        help="Whether to use judge model for evaluation"
     )
     parser.add_argument(
         "--attack_type",
@@ -147,12 +140,7 @@ def main():
     
     # Setup log file
     model_name = args.model_name.split("/")[1].replace("-", "").lower()
-    judge = None
-    if args.use_judge:
-        judge = GemmaJudge(device=model.device)
-        log_file_name = f"asr_step_{model_name}_{args.attack_type}_judge_{args.seed}.json"
-    else:
-        log_file_name = f"asr_step_{model_name}_{args.attack_type}_nojudge_{args.seed}.json"
+    log_file_name = f"asr_step_{model_name}_{args.attack_type}_{args.seed}.json"
     print(f"\nLogs path: {log_file_name}")
     
     # Compute ASR
@@ -162,8 +150,6 @@ def main():
         args.prompts_file_name,
         log_file_name,
         args.step_count_func,
-        judge,
-        args.verbose
     )
     
     # Print results

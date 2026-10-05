@@ -24,32 +24,30 @@ def remove_quotes(sentences):
 def run_pap(
     model, 
     tokenizer,
-    data: list,
-    text: str,
-    max_iter: int,
+    taxonomy: list,
+    prompt: str,
 ):
     """Mutate an adversarial prompt for a given model."""
     completions = []
-    for i in tqdm(range(len(data))):
-        while True:
-            try:
-                response = run_inference(
-                    model,
-                    tokenizer,
-                    question=ONE_SHOT_KD % (data[i]["ss_technique"], data[i]["ss_definition"], data[i]["ss_example"], text, data[i]["ss_technique"], text, text),
-                    SYSTEM_PROMPT="",)
-                
-                output = remove_quotes([response])
-                print(f"\nExtracted output from the model for persuasive mutation:\n{output[0]}")
-                completions.append({"persuasion_taxonomy": data,
-                                    "prompt": text,
-                                    "response": response,
-                                    "output": output[0]})
-                break
-            except Exception as err:
-                print('Exception occurs when calling the model for persuasive mutation:', err)
-                print('Will sleep for 5 seconds before retry...')
-                time.sleep(5)
+    for i in tqdm(range(len(taxonomy))):
+        j = 0
+        try:
+            response = run_inference(
+                model,
+                tokenizer,
+                question=ONE_SHOT_KD % (taxonomy[i]["ss_technique"], taxonomy[i]["ss_definition"], taxonomy[i]["ss_example"], prompt, taxonomy[i]["ss_technique"], prompt, prompt),
+                SYSTEM_PROMPT="",)
+            
+            output = remove_quotes([response])
+            print(f"\nExtracted output from the model for persuasive mutation:\n{output[0]}")
+            completions.append({"persuasion_taxonomy": taxonomy[i],
+                                "prompt": prompt,
+                                "response": response,
+                                "output": output[0]})
+        except Exception as err:
+            print('Exception occurs when calling the model for persuasive mutation:', err)
+            print('Will sleep for 5 seconds before retry...')
+            time.sleep(5)
     
     print(f"Total mutation attempts: {len(completions)}")
     return completions
