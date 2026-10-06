@@ -55,8 +55,8 @@ def main():
     model, tokenizer = load_model_and_tokenizer(args.model_name)
     
     # Load dataset
-    print(f"Loading dataset: {args.dataset_path}")
-    dataset = load_dataset(args.dataset_path, split="harmful")
+    dataset = load_dataset(args.dataset_path,"behaviors", split="harmful")
+    print(f"\nLoaded dataset from: {args.dataset_path}")
     
     # Load PAP persuasion taxonomy
     persuasion_taxonomy = []
