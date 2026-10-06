@@ -38,7 +38,6 @@ def run_pap(
                 SYSTEM_PROMPT="",)
             
             output = remove_quotes([response])
-            print(f"\nExtracted output from the model for persuasive mutation:\n{output[0]}")
             completions.append({"persuasion_taxonomy": taxonomy[i],
                                 "prompt": prompt,
                                 "response": response,
@@ -47,6 +46,4 @@ def run_pap(
             print('Exception occurs when calling the model for persuasive mutation:', err)
             print('Will sleep for 5 seconds before retry...')
             time.sleep(5)
-    
-    print(f"Total mutation attempts: {len(completions)}")
     return completions

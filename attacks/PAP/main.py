@@ -33,7 +33,7 @@ def parse_args() -> argparse.Namespace:
     args = parser.parse_args()
     return args
 
-def remove_quotes(sentences):
+def remove_quotes(sentences) -> list[str]:
     cleaned_sentences = []
     for s in sentences:
         if s.startswith('"""') and s.endswith('"""'):
@@ -50,14 +50,20 @@ def main():
     args = parse_args()
     set_seed(args.seed)
     
+    # Load model and tokenizer
+    print(f"\nLoading model: {args.model_name}")
+    model, tokenizer = load_model_and_tokenizer(args.model_name)
+    
+    # Load dataset
+    print(f"Loading dataset: {args.dataset_path}")
+    dataset = load_dataset(args.dataset_path, split="harmful")
+    
+    # Load PAP persuasion taxonomy
     persuasion_taxonomy = []
     with open("attacks/PAP/persuasion_taxonomy.jsonl", 'r') as file:
         for line in file:
             persuasion_taxonomy.append(json.loads(line))
     print(f"Loaded persuasion taxonomy with {len(persuasion_taxonomy)} entries.")
-    model, tokenizer = load_model_and_tokenizer(args.model_name)
-    
-    dataset = load_dataset(args.dataset_path, split="harmful")
     
     result_list = []
     for _, sample in enumerate(tqdm(dataset, desc="PAP Generation", total=len(dataset))):
