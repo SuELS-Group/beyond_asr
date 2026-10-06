@@ -20,8 +20,8 @@ LANGUAGE_MAP: Dict[str, str] = {
     "zulu": "zu",
 }
     
-def safe_translate(prompt: str) -> str:
+def safe_translate(prompt: str) -> tuple[str, str]:
     """Translate the prompt into a low-resource language."""
     target_lang = random.choice(list(LANGUAGE_MAP.keys()))
     translated_text = GoogleTranslator(source='en', target=LANGUAGE_MAP[target_lang]).translate(prompt)
-    return translated_text
+    return target_lang, translated_text

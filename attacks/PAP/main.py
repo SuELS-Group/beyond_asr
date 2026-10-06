@@ -3,14 +3,17 @@ import json
 import sys
 from pathlib import Path
 
+from tqdm import tqdm
+
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
+from datasets import load_dataset
+
 from attacks.PAP.pap import run_pap
 from utils.env import set_seed, store_logs
-
-from datasets import load_dataset
 from utils.inference_artifacts import load_model_and_tokenizer
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
@@ -19,10 +22,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dataset_path",
                         type=str,
                         default="JailbreakBench/JBB-Behaviors", help="Path to jailbreak dataset")
-    parser.add_argument("--max_samples",
-                        type=int,
-                        default=None,
-                        help="Max samples to evaluate (default: all)")
     parser.add_argument("--device",
                         type=str,
                         default="cuda")
@@ -47,7 +46,7 @@ def remove_quotes(sentences):
             cleaned_sentences.append(s)
     return cleaned_sentences
 
-if __name__ == "__main__":
+def main():
     args = parse_args()
     set_seed(args.seed)
     
@@ -61,7 +60,7 @@ if __name__ == "__main__":
     dataset = load_dataset(args.dataset_path, split="harmful")
     
     result_list = []
-    for sample in dataset:
+    for _, sample in enumerate(tqdm(dataset, desc="PAP Generation", total=len(dataset))):
         output = run_pap(model,
                         tokenizer,
                         persuasion_taxonomy,
@@ -69,4 +68,8 @@ if __name__ == "__main__":
         result_list.append(output)
     model_name = args.model_name.split("/")[1].replace("-", "").lower()
     store_logs(result_list, f"attacks/PAP/{model_name}_pap_prompts_{args.seed}.json")
+    print("Finished PAP generation!!")
             
+if __name__ == "__main__":
+    main()
+    

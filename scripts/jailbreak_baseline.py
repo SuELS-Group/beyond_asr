@@ -5,7 +5,6 @@ import json
 import sys
 import warnings
 from pathlib import Path
-from typing import Any
 
 from tqdm import tqdm
 
@@ -22,7 +21,7 @@ warnings.simplefilter('ignore')
 def compute_asr(
     model,
     tokenizer,
-    prompts_file_name: str,
+    dataset: list,
     judge: GemmaJudge,
     log_file_name: str,
 ) -> dict:
@@ -32,16 +31,13 @@ def compute_asr(
     Args:
         model: Model to evaluate
         tokenizer: Tokenizer
-        prompts_file_name: Name of the prompts file
+        dataset: List of jailbreak prompts
         judge: Judge model
         log_file_name: Name of the log file
     
     Returns:
         Dictionary with metrics
     """
-    
-    with open(prompts_file_name, "r", encoding="utf-8") as f:
-        dataset = json.load(f)
     num_samples = len(dataset)
     print(f"\nEvaluating on {num_samples} samples...")
     
@@ -63,6 +59,7 @@ def compute_asr(
         # Compute total ASR for successful jailbreaks only
         asr_total_score += metrics["score"] if metrics["status"] == "jailbreak" else 0.0
         success += 1 if metrics["status"] == "jailbreak" else 0
+    # Persist log file
     store_logs(outputs, log_file_name)
     
     results = {
@@ -80,20 +77,13 @@ def main():
     parser.add_argument(
         "--model_name",
         type=str,
-        default="meta-llama/Llama-3.2-1B-Instruct",
+        default="lmsys/vicuna-7b-v1.5",
         help="Base model name or path"
     )
     parser.add_argument(
         "--prompts_file_name",
         type=str,
-        default="nanogcg_prompts.jsonl",
         help="Path to jailbreak prompts"
-    )
-    parser.add_argument(
-        "--attack_type",
-        type=str,
-        default="gcg",
-        help="Type of attack to use, default: gcg"
     )
     parser.add_argument(
         "--seed",
@@ -110,18 +100,30 @@ def main():
     model, tokenizer = load_model_and_tokenizer(args.model_name)
     
     # Load judge model
+    print(f"\nLoading judge model...")
     judge = GemmaJudge()
+    
+    # Loading prompts dataset
+    print(f"\nLoading prompts dataset: {args.prompts_file_name}")
+    with open(args.prompts_file_name, "r", encoding="utf-8") as f:
+        dataset = json.load(f)
     
     # Setup log file
     model_name = args.model_name.split("/")[1].replace("-", "").lower()
-    log_file_name = f"asr_base_{model_name}_{args.attack_type}_{args.seed}.json"
-    print(f"\nLogs path: {log_file_name}")
+    if "gcg" in args.prompts_file_name:
+        attack_type = "gcg"  
+    elif "pap" in args.prompts_file_name:
+        attack_type = "pap"
+    else:
+        attack_type = "lrt"
+    log_file_name = f"asr_base_{model_name}_{attack_type}_{args.seed}.json"
+    print(f"\nASR Evaluation Log file: {log_file_name}")
     
     # Compute ASR
     results = compute_asr(
         model,
         tokenizer,
-        args.prompts_file_name,
+        dataset,
         judge,
         log_file_name,
     )

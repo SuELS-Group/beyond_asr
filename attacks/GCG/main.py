@@ -10,9 +10,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from datasets import load_dataset
-from gcg import GCGConfig, ProbeSamplingConfig, run
 from tqdm import tqdm
 
+from attacks.GCG.gcg import GCGConfig, ProbeSamplingConfig, run
 from utils.env import set_seed, store_logs
 from utils.inference_artifacts import load_model_and_tokenizer
 
@@ -20,7 +20,7 @@ from utils.inference_artifacts import load_model_and_tokenizer
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_name", type=str,
-                        default="meta-llama/Llama-3.2-1B-Instruct")
+                        default="lmsys/vicuna-7b-v1.5")
     parser.add_argument("--dataset_path",
                         type=str,
                         default="JailbreakBench/JBB-Behaviors", help="Path to jailbreak dataset")
@@ -28,12 +28,6 @@ def parse_args() -> argparse.Namespace:
                         type=int,
                         default=None,
                         help="Max samples to evaluate (default: all)")
-    parser.add_argument("--device",
-                        type=str,
-                        default="cuda")
-    parser.add_argument("--dtype",
-                        type=str,
-                        default="float16")
     parser.add_argument("--probe_sampling",
                         action="store_true")
     parser.add_argument("--seed",
@@ -67,11 +61,10 @@ def main():
 
     # Load dataset
     dataset = load_dataset(args.dataset_path,"behaviors", split="harmful")
-    subset = dataset.select([i for i in list(range(args.max_samples))]) if args.max_samples else dataset
     print(f"\nLoaded dataset from: {args.dataset_path}")
 
     result_list = []
-    for _, sample in enumerate(tqdm(subset, desc="GCG Evaluation", total=len(subset))):
+    for _, sample in enumerate(tqdm(dataset, desc="GCG Generation", total=len(dataset))):
         question = sample["Goal"]
         target = sample["Target"]
     
