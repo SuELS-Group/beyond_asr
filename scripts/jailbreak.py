@@ -13,6 +13,7 @@ import warnings
 
 from tqdm import tqdm
 
+from evals.judge import GemmaJudge
 from evals.scores import compute_metrics
 from utils.counts import exp, log
 from utils.env import set_seed, store_logs
@@ -24,9 +25,9 @@ def compute_asr_step(
     model,
     tokenizer,
     prompts_file_name: str,
+    judge: GemmaJudge,
     log_file_name: str,
     step_count_func: str,
-    verbose: bool = False,
 ) -> dict:
     """
     Compute cost-aware stepwise Attack Success Rate (ASR_STEP) on jailbreak dataset.
@@ -35,9 +36,9 @@ def compute_asr_step(
         model: Model to evaluate
         tokenizer: Tokenizer
         prompts_file_name: Path to jailbreak prompts
+        judge: Judge model
         log_file_name: Path to store logs
         step_count_func: Function to calculate step count
-        verbose: Print details for each sample
     
     Returns:
         Dictionary with metrics
@@ -60,7 +61,7 @@ def compute_asr_step(
 
         while i<len(suffixes_asc):
             new_question = f"{sample["question"]}{suffixes_asc[i]}"
-            metrics = compute_metrics(model, tokenizer, new_question, sample["target"])
+            metrics = compute_metrics(model, tokenizer, new_question, sample["target"], judge)
             outputs.append({
                         "jailbreak_status": metrics["status"],
                         "jailbreak_index": i if metrics["status"] == "jailbreak" else -1,
@@ -68,7 +69,7 @@ def compute_asr_step(
                         "jailbreak_score": metrics["score"],
                         "jailbreak_question": new_question,
                         "jailbreak_response": metrics["response"],
-                        "judge_reason": metrics["judge_reason"],
+                        "judge_reason": metrics["reason"],
                         "judge_confidence": metrics["confidence"],
                     },)
 
@@ -138,6 +139,9 @@ def main():
     print(f"\nLoading model: {args.model_name}")
     model, tokenizer = load_model_and_tokenizer(args.model_name)
     
+    # Load judge model
+    judge = GemmaJudge()
+    
     # Setup log file
     model_name = args.model_name.split("/")[1].replace("-", "").lower()
     log_file_name = f"asr_step_{model_name}_{args.attack_type}_{args.seed}.json"
@@ -148,6 +152,7 @@ def main():
         model,
         tokenizer,
         args.prompts_file_name,
+        judge,
         log_file_name,
         args.step_count_func,
     )

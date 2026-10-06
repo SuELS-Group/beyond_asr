@@ -30,7 +30,6 @@ def run_pap(
     """Mutate an adversarial prompt for a given model."""
     completions = []
     for i in tqdm(range(len(taxonomy))):
-        j = 0
         try:
             response = run_inference(
                 model,

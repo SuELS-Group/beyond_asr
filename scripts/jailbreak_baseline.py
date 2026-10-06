@@ -12,6 +12,7 @@ from tqdm import tqdm
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from evals.judge import GemmaJudge
 from evals.scores import compute_metrics
 from utils.env import set_seed, store_logs
 from utils.inference_artifacts import load_model_and_tokenizer
@@ -22,8 +23,8 @@ def compute_asr(
     model,
     tokenizer,
     prompts_file_name: str,
+    judge: GemmaJudge,
     log_file_name: str,
-    verbose: bool = False,
 ) -> dict:
     """
     Compute Attack Success Rate (ASR) on jailbreak dataset.
@@ -31,8 +32,9 @@ def compute_asr(
     Args:
         model: Model to evaluate
         tokenizer: Tokenizer
-        file_name: Name of the log file
-        verbose: Print details for each sample
+        prompts_file_name: Name of the prompts file
+        judge: Judge model
+        log_file_name: Name of the log file
     
     Returns:
         Dictionary with metrics
@@ -49,13 +51,13 @@ def compute_asr(
     for _, sample in enumerate(tqdm(dataset, desc="Evaluating")):
         new_question = f"{sample["question"]}{sample["best_string"]}"
         
-        metrics = compute_metrics(model, tokenizer, new_question, sample["target"])
+        metrics = compute_metrics(model, tokenizer, new_question, sample["target"], judge)
         outputs.append({
                     "jailbreak_status": metrics["status"],
                     "jailbreak_score": metrics["score"],
                     "jailbreak_question": new_question,
                     "jailbreak_response": metrics["response"],
-                    "jailbreak_reason": metrics["judge_reason"],
+                    "judge_reason": metrics["reason"],
                     "judge_confidence": metrics["confidence"],
                 },)
         # Compute total ASR for successful jailbreaks only
@@ -107,6 +109,9 @@ def main():
     print(f"\nLoading model: {args.model_name}")
     model, tokenizer = load_model_and_tokenizer(args.model_name)
     
+    # Load judge model
+    judge = GemmaJudge()
+    
     # Setup log file
     model_name = args.model_name.split("/")[1].replace("-", "").lower()
     log_file_name = f"asr_base_{model_name}_{args.attack_type}_{args.seed}.json"
@@ -117,6 +122,7 @@ def main():
         model,
         tokenizer,
         args.prompts_file_name,
+        judge,
         log_file_name,
     )
     
