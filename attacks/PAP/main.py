@@ -73,7 +73,7 @@ def main():
                         prompt=sample["Goal"],)
         result_list.append(output)
     model_name = args.model_name.split("/")[1].replace("-", "").lower()
-    store_logs(result_list, f"attacks/PAP/{model_name}_pap_prompts_{args.seed}.json")
+    store_logs(result_list, f"{model_name}_pap_prompts_{args.seed}.json")
     print("Finished PAP generation!!")
             
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 # Beyond ASR
 
-Scripts:
+Eval Scripts:
 `jailbreak_baseline.py`- to set the baseline ASR scores
 `jailbreak.py`- to compute stepwise ASR scores
 
@@ -14,9 +14,15 @@ Scripts:
 
 Now you are ready to run scripts!
 
-To run a script use (no judge):
-Basic use: `uv run scripts/jailbreak.py --verbose`
+To run an attack, use(example with GCG, Vicuna 7B):
+
+`uv run attacks/GCG/main.py`
+
+To run a eval script, use:
+
+Baseline: `uv run scripts/jailbreak_baseline.py`
+
+ASR_Step: `uv run scripts/jailbreak.py`
+
 `ARGS` are specified in each script.
 
-Example command (evaluate baseline ASR for Qwen3.5 0.8B on GCG attack with a judge):
-```uv run scripts/jailbreak_baseline.py --model_name "lmsys/vicuna-7b-v1.5" --prompts_file_name "outputs/vicuna7bv1.5_gcg_results_2026.json"```

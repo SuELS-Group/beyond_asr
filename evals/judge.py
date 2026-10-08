@@ -58,9 +58,7 @@ class GemmaJudge():
         generated = self.model.generate(
             **inputs,
             max_new_tokens=512,
-            temperature=0.5,
-            top_p=0.95,
-            top_k=64,
+            temperature=0,
             do_sample=False,
         )
 
