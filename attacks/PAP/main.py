@@ -71,7 +71,11 @@ def main():
                         tokenizer,
                         persuasion_taxonomy,
                         prompt=sample["Goal"],)
-        result_list.append(output)
+        result_list.append({
+                            "question": sample["Goal"],
+                            "target": sample["Target"],
+                            "output": output,
+                        })
     model_name = args.model_name.split("/")[1].replace("-", "").lower()
     store_logs(result_list, f"{model_name}_pap_prompts_{args.seed}.json")
     print("Finished PAP generation!!")
