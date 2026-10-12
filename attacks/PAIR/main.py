@@ -97,7 +97,7 @@ def main():
             "jailbroken_prompt": output["jailbroken_prompt"],
             "jailbreak_index": output["jailbreak_index"],
         })
-    store_logs(results_list, f"{args.victim_model}_pair_results_{args.seed}.json")
+    store_logs(results_list, f"{args.model_name}_pair_results_{args.seed}.json")
     print("Finished PAIR generation!!")
 
 if __name__ == "__main__":

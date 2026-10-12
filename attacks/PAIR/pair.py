@@ -52,7 +52,7 @@ def pair(
             }
 
     """
-    best_score, best_prompt = 1, prompt
+    best_score, best_prompt = 0.0, prompt
     attacker_system_prompt = _pair_templates["attacker_system_prompt"].format(
         goal=prompt, target_str=target_str
     )
@@ -72,10 +72,9 @@ def pair(
         )
         try:
             jailbroken_prompt = json.loads(attacker_response)["prompt"]
-            jailbreak_index = i
-            break
-        except:
-            pass
+            print(f"PAIR generated a jailbroken prompt at iteration {i}: {jailbroken_prompt}")
+        except (json.JSONDecodeError, KeyError, TypeError):
+            continue
 
         if jailbroken_prompt is None:
             continue
@@ -90,7 +89,7 @@ def pair(
             f"PAIR Best score: {max(best_score, score)} @ index #{jailbreak_index}, Last score: {score}"
         )
         if score == 1.0:  # maximum score achieved
-            return {"jailbroken_prompt": jailbroken_prompt, "jailbreak_index": jailbreak_index}
+            return {"jailbroken_prompt": jailbroken_prompt, "jailbreak_index": i}
         elif best_score < score:
             best_score = score
             best_prompt = jailbroken_prompt
@@ -108,4 +107,4 @@ def pair(
 
     msg = f"PAIR did not achieve the maximum score. Best score: {best_score}."
     print(msg)
-    return {"jailbroken_prompt": best_prompt, "jailbreak_index": jailbreak_index}
+    return {"jailbroken_prompt": best_prompt, "jailbreak_index": max_iter}
