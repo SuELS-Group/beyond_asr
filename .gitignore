@@ -10,7 +10,6 @@ data/
 
 # Large model files and datasets
 *.safetensors
-*.json
 *.dylib
 *.so
 *.dll
@@ -37,5 +36,3 @@ OLD-CODE/
 # data
 datasets
 .DS_Store
-*.json*
-scripts/base_evals.py
