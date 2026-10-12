@@ -48,7 +48,7 @@ def compute_asr_step(
     success= 0
     for _, sample in enumerate(tqdm(dataset, desc="Evaluating")):
         if "pap" in attack_type:
-            new_question = sample["output"]["modified_prompt"]
+            new_question = sample["output"][0]["modified_prompt"]
         elif "gcg" in attack_type:
             new_question = f"{sample['question']}{sample['best_string']}"
         else:
