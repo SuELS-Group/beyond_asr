@@ -1,5 +1,5 @@
 import time
-from tqdm import tqdm
+import random
 
 from utils.inference_artifacts import run_inference
 
@@ -22,31 +22,31 @@ def remove_quotes(sentences):
     return cleaned_sentences
 
 def run_pap(
-    model, 
+    model,
     tokenizer,
     taxonomy: list,
     prompt: str,
 ):
     """Mutate an adversarial prompt for a given model."""
     completions = []
-    for i in tqdm(range(len(taxonomy))):
-        j = 0
-        while j<3:
-            try:
-                response = run_inference(
-                    model,
-                    tokenizer,
-                    question=ONE_SHOT_KD % (taxonomy[i]["ss_technique"], taxonomy[i]["ss_definition"], taxonomy[i]["ss_example"], prompt, taxonomy[i]["ss_technique"], prompt, prompt),
-                    SYSTEM_PROMPT="",)
-                
-                output = remove_quotes([response])
-                completions.append({"modified_prompt": output[0],
-                                    "persuasion_taxonomy": taxonomy[i],})
-                if "youranswer1" not in output[0].lower():
-                    break
-                j += 1
-            except Exception as err:
-                print('Exception occurs when calling the model for persuasive mutation:', err)
-                print('Will sleep for 5 seconds before retry...')
-                time.sleep(5)
+    i = random.randint(0, len(taxonomy)-1) # choose a random social influence strategy from the taxonomy
+    j = 0
+    while j<3:
+        try:
+            response = run_inference(
+                model,
+                tokenizer,
+                question=ONE_SHOT_KD % (taxonomy[i]["ss_technique"], taxonomy[i]["ss_definition"], taxonomy[i]["ss_example"], prompt, taxonomy[i]["ss_technique"], prompt, prompt),
+                SYSTEM_PROMPT="",)
+            
+            output = remove_quotes([response])
+            completions.append({"modified_prompt": output[0],
+                                "persuasion_taxonomy": taxonomy[i],})
+            if "youranswer1" not in output[0].lower():
+                break
+            j += 1
+        except Exception as err:
+            print('Exception occurs when calling the model for persuasive mutation:', err)
+            print('Will sleep for 5 seconds before retry...')
+            time.sleep(5)
     return completions

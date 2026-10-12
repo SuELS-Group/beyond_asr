@@ -1,4 +1,5 @@
 from typing import Tuple
+from typing import Union
 
 import torch
 from transformers.models.auto.modeling_auto import AutoModelForCausalLM
@@ -9,6 +10,35 @@ Answer the user's question directly and concisely.
 Return only the answer content.
 Do not repeat the question, add headings, or include conversational preambles.
 """
+
+def convert_to_messages(
+    prompt: Union[str, list[str], list[dict[str, str]]], system_prompt: str = None
+) -> list[dict[str, str]]:
+    """Convert a "prompt" to messages format for generating a response.
+
+    Args:
+        prompt (Union[str, list[str], list[dict[str, str]]]): Input to convert to messages format. If a string, this is treated as the user content. If a list of strings, these are treated as alternating user and assistant content. The input may also already be in messages format.
+        system_prompt (str, optional): System prompt. Defaults to None.
+
+    Returns:
+        list[dict[str, str]]: List of messages, where a message is ``{"role": <role>, "content": <content>}``.
+    """
+    if isinstance(prompt, str):
+        messages = [{"role": "user", "content": prompt}]
+    elif isinstance(prompt[0], str):
+        messages = []
+        for i, content in enumerate(prompt):
+            messages.append({"role": "user" if i % 2 == 0 else "assistant", "content": content})
+    else:
+        messages = prompt
+
+    if system_prompt is not None:
+        if messages[0]["role"] == "system":
+            messages[0]["content"] = system_prompt
+        else:
+            messages = [{"role": "system", "content": system_prompt}] + messages
+
+    return messages
 
 def load_model_and_tokenizer(
     model_name: str,
@@ -57,13 +87,9 @@ def run_inference(
     Returns:
         Generated response
     """
-    inference_messages = [
-    {"role": "system", "content": SYSTEM_PROMPT},
-    {"role": "user", "content": question},
-    ]
-
+    messages = convert_to_messages(question, system_prompt=SYSTEM_PROMPT)
     inputs = tokenizer.apply_chat_template(
-        inference_messages,
+        messages,
         tokenize=True,
         add_generation_prompt=True,
         return_tensors="pt",

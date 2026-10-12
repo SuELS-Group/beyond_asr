@@ -63,7 +63,7 @@ def compute_asr_step(
         if metrics["status"] == "jailbreak":
             success += 1
             if "pap" in attack_type:
-                asr_total_baseline_score += metrics["score"]
+                iter_ratio = 0.0
             else:
                 asr_total_baseline_score += metrics["score"]
                 if "gcg" in attack_type:
