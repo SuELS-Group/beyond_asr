@@ -1,5 +1,4 @@
 import argparse
-import json
 import sys
 from pathlib import Path
 
@@ -58,18 +57,10 @@ def main():
     dataset = load_dataset(args.dataset_path,"behaviors", split="harmful")
     print(f"\nLoaded dataset from: {args.dataset_path}")
     
-    # Load PAP persuasion taxonomy
-    persuasion_taxonomy = []
-    with open("attacks/PAP/persuasion_taxonomy.jsonl", 'r') as file:
-        for line in file:
-            persuasion_taxonomy.append(json.loads(line))
-    print(f"Loaded persuasion taxonomy with {len(persuasion_taxonomy)} entries.")
-    
     result_list = []
-    for _, sample in enumerate(tqdm(dataset, desc="PAP Generation", total=len(dataset))):
+    for _, sample in enumerate(tqdm(dataset, desc="PAP Misrepresentation Generation", total=len(dataset))):
         output = run_pap(model,
                         tokenizer,
-                        persuasion_taxonomy,
                         prompt=sample["Goal"],)
         result_list.append({
                             "question": sample["Goal"],
