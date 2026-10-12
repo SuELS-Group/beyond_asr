@@ -40,7 +40,7 @@ def load_model_and_tokenizer(
 def run_inference(
     model,
     tokenizer,
-    question: str,
+    question: list[str] | str,
     SYSTEM_PROMPT: str = DEFAULT_SYSTEM_PROMPT,
 ) -> str:
     """
