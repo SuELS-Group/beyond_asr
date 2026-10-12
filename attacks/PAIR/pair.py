@@ -90,8 +90,7 @@ def pair(
         )
         if score == 1.0:  # maximum score achieved
             return {"jailbroken_prompt": jailbroken_prompt, "jailbreak_index": i}
-        elif best_score < score:
-            best_score = score
+        else:
             best_prompt = jailbroken_prompt
             jailbreak_index = i
 
