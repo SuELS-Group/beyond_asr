@@ -47,7 +47,12 @@ def compute_asr_step(
     asr_total_step_score = 0.0
     success= 0
     for _, sample in enumerate(tqdm(dataset, desc="Evaluating")):
-        new_question = f"{sample["question"]}{sample["best_string"]}"
+        if "pap" in attack_type:
+            new_question = sample["output"]["modified_prompt"]
+        elif "gcg" in attack_type:
+            new_question = f"{sample['question']}{sample['best_string']}"
+        else:
+            new_question = sample["jailbreak_prompt"]
         response = run_inference(model, tokenizer, new_question)
         
         metrics = compute_metrics(new_question, response, sample["target"], judge)
