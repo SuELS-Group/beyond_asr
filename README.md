@@ -1,9 +1,7 @@
 # Beyond ASR
+Code for paper: http://arxiv.org/abs/2610.26589 submitted to NAACL'27.
 
-Eval Scripts:
-`jailbreak.py`- to compute baseline and stepwise ASR scores
-
-## Environment setup
+### Environment setup:
 
 1. Clone this project
 2. Make sure uv is installed on your target system
@@ -13,11 +11,15 @@ Eval Scripts:
 
 Now you are ready to run scripts!
 
-To run an attack, use(example with GCG, Vicuna 7B):
+### Running the code:
+Eval Script:
+`jailbreak.py`- to compute baseline and stepwise ASR scores
+
+#### To run an attack, use (example with GCG, Vicuna 7B):
 
 `uv run attacks/GCG/main.py`
 
-To run a eval script, use:
+#### To run a eval script, use:
 
 ASR and ASR_Step computation (default: Vicuna): `uv run scripts/jailbreak.py`
 
